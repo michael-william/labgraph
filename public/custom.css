@@ -1,0 +1,1845 @@
+/* Reset and base styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: radial-gradient(ellipse at center, #1a1a2e 0%, #16213e 50%, #0f0f23 100%);
+    height: 100vh;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+body.dark {
+    background: radial-gradient(ellipse at center, #1a1a2e 0%, #16213e 50%, #0f0f23 100%);
+    color: #e5e5e5;
+}
+
+/* Top Bar */
+.top-bar {
+    height: 60px;
+    background: #ffffff;
+    border-bottom: 1px solid #e5e5e5;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    z-index: 100;
+    position: relative;
+}
+
+body.dark .top-bar {
+    background: rgba(26, 26, 46, 0.8);
+    border-bottom: 1px solid rgba(102, 126, 234, 0.3);
+}
+
+.logo-section {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.logo {
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+}
+
+.project-name {
+    font-weight: 600;
+    color: #1a1a1a;
+}
+
+body.dark .project-name {
+    color: #e5e5e5;
+}
+
+.top-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.action-btn {
+    padding: 8px 16px;
+    border: 1px solid #e5e5e5;
+    background: white;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 14px;
+}
+
+.action-btn:hover {
+    background: #f5f5f5;
+    transform: translateY(-1px);
+}
+
+body.dark .action-btn {
+    background: #262626;
+    border: 1px solid #404040;
+    color: #e5e5e5;
+}
+
+body.dark .action-btn:hover {
+    background: #333;
+}
+
+.theme-toggle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #f0f0f0;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+body.dark .theme-toggle {
+    background: #333;
+}
+
+/* Main Layout */
+.main-layout {
+    display: flex;
+    height: calc(100vh - 60px);
+}
+
+/* Side Panel */
+.side-panel {
+    width: 320px;
+    background: #ffffff;
+    border-right: 1px solid #e5e5e5;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    box-shadow: 2px 0 10px rgba(0,0,0,0.05);
+    position: relative;
+}
+
+body.dark .side-panel {
+    background: rgba(26, 26, 46, 0.9);
+    border-right: 1px solid rgba(102, 126, 234, 0.3);
+}
+
+.side-panel.collapsed {
+    width: 60px;
+}
+
+/* Expand button for collapsed panel */
+.expand-btn {
+    display: none;
+    position: absolute;
+    top: 16px;
+    right: -20px;
+    width: 40px;
+    height: 40px;
+    background: #fff;
+    border: 1px solid #e5e5e5;
+    border-radius: 50%;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    cursor: pointer;
+    z-index: 10;
+}
+
+body.dark .expand-btn {
+    background: #333;
+    border: 1px solid #404040;
+    color: #e5e5e5;
+}
+
+.side-panel.collapsed .expand-btn {
+    display: flex;
+}
+
+.expand-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.panel-header {
+    height: 60px;
+    padding: 16px 20px;
+    border-bottom: 1px solid #e5e5e5;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+body.dark .panel-header {
+    border-bottom: 1px solid rgba(102, 126, 234, 0.2);
+    background: rgba(22, 33, 62, 0.5);
+}
+
+.panel-title {
+    font-weight: 600;
+    font-size: 16px;
+    opacity: 1;
+    transition: opacity 0.2s ease;
+}
+
+.side-panel.collapsed .panel-title {
+    opacity: 0;
+}
+
+.collapse-btn {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: #f5f5f5;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+body.dark .collapse-btn {
+    background: #333;
+}
+
+.panel-content {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.side-panel.collapsed .panel-content {
+    padding: 20px 10px;
+}
+
+.tool-section {
+    margin-bottom: 24px;
+}
+
+.tool-section h3 {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: #666;
+    opacity: 1;
+    transition: opacity 0.2s ease;
+}
+
+body.dark .tool-section h3 {
+    color: #999;
+}
+
+.side-panel.collapsed .tool-section h3 {
+    opacity: 0;
+}
+
+.tool-item {
+    padding: 12px;
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+body.dark .tool-item {
+    background: #262626;
+    border: 1px solid #404040;
+}
+
+.tool-item:hover {
+    background: #e9ecef;
+    transform: translateX(2px);
+}
+
+body.dark .tool-item:hover {
+    background: #333;
+}
+
+.tool-icon {
+    width: 20px;
+    height: 20px;
+    background: #ddd;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+
+.tool-text {
+    opacity: 1;
+    transition: opacity 0.2s ease;
+}
+
+.side-panel.collapsed .tool-text {
+    opacity: 0;
+}
+
+/* Node Configuration Section */
+.node-config {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 16px;
+    margin-top: 16px;
+    display: none;
+}
+
+body.dark .node-config {
+    background: #1a1a1a;
+    border: 1px solid #333;
+}
+
+.node-config.active {
+    display: block;
+}
+
+.edit-node-config {
+    display: none;
+}
+
+.edit-node-config.active {
+    display: block;
+}
+
+.config-field {
+    margin-bottom: 16px;
+}
+
+.config-field:last-child {
+    margin-bottom: 0;
+}
+
+.config-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: #666;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+body.dark .config-label {
+    color: #999;
+}
+
+.config-input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #e5e5e5;
+    border-radius: 6px;
+    background: white;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+body.dark .config-input {
+    background: #262626;
+    border: 1px solid #404040;
+    color: #e5e5e5;
+}
+
+.config-input:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.config-select {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #e5e5e5;
+    border-radius: 6px;
+    background: white;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+body.dark .config-select {
+    background: #262626;
+    border: 1px solid #404040;
+    color: #e5e5e5;
+}
+
+.config-select:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+/* Custom Attributes Section */
+.custom-attributes {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid #e5e5e5;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+body.dark .custom-attributes {
+    border-top: 1px solid #333;
+}
+
+.attributes-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.attributes-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+body.dark .attributes-title {
+    color: #999;
+}
+
+.add-attribute-btn {
+    width: 24px;
+    height: 24px;
+    background: #667eea;
+    border: none;
+    border-radius: 50%;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: bold;
+    transition: all 0.2s ease;
+    margin-top: 8px;
+    margin-left: 0; /* Ensure no unwanted left margin */
+}
+
+.add-attribute-btn:hover {
+    background: #5a67d8;
+    transform: scale(1.1);
+}
+
+#attributesList {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.attribute-item {
+    margin-bottom: 16px;
+    padding: 12px;
+    background: rgba(0, 0, 0, 0.02);
+    border: 1px solid #f0f0f0;
+    border-radius: 6px;
+}
+
+body.dark .attribute-item {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid #333;
+}
+
+.attribute-item:last-child {
+    margin-bottom: 0;
+}
+
+.attribute-name-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.attribute-name-input {
+    flex: 1;
+    padding: 8px 10px;
+    border: 1px solid #e5e5e5;
+    border-radius: 4px;
+    background: white;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+body.dark .attribute-name-input {
+    background: #262626;
+    border: 1px solid #404040;
+    color: #e5e5e5;
+}
+
+.attribute-name-input:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+}
+
+.attribute-name-input::placeholder {
+    color: #999;
+    font-size: 12px;
+}
+
+.attribute-value-input {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid #e5e5e5;
+    border-radius: 4px;
+    background: white;
+    font-size: 13px;
+    min-height: 60px;
+    resize: vertical;
+    font-family: inherit;
+    transition: all 0.2s ease;
+}
+
+body.dark .attribute-value-input {
+    background: #262626;
+    border: 1px solid #404040;
+    color: #e5e5e5;
+}
+
+.attribute-value-input:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+}
+
+.attribute-value-input::placeholder {
+    color: #999;
+    font-size: 12px;
+}
+
+.remove-attribute-btn {
+    width: 24px;
+    height: 24px;
+    background: #dc3545;
+    border: none;
+    border-radius: 50%;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: bold;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.remove-attribute-btn:hover {
+    background: #c82333;
+    transform: scale(1.1);
+}
+
+/* Match the style of .remove-attribute-btn for .remove-parent-btn */
+.remove-parent-btn {
+    width: 24px;
+    height: 24px;
+    background: #dc3545;
+    border: none;
+    border-radius: 50%;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: bold;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+.remove-parent-btn:hover {
+    background: #c82333;
+    transform: scale(1.1);
+}
+
+/* Save Button */
+.save-node-btn {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    margin-top: 20px;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.save-node-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.save-node-btn:active {
+    transform: translateY(0);
+}
+
+/* Canvas Area */
+.canvas-area {
+    flex: 1;
+    background: #ffffff;
+    position: relative;
+    overflow: hidden;
+}
+
+body.dark .canvas-area {
+    background: #0a0a0a;
+}
+
+.canvas-area svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.canvas-grid {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0.1;
+    background-image: 
+        linear-gradient(rgba(0,0,0,0.1) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,0,0,0.1) 1px, transparent 1px);
+    background-size: 20px 20px;
+    pointer-events: none;
+}
+
+body.dark .canvas-grid {
+    background-image: 
+        linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px);
+}
+
+.graph-placeholder {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    color: #999;
+}
+
+.sample-nodes {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.node {
+    position: absolute;
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    animation: pulse 2s infinite;
+}
+
+.node:nth-child(2) {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    animation-delay: 0.5s;
+}
+
+.node:nth-child(3) {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    animation-delay: 1s;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+.connection-line {
+    position: absolute;
+    height: 2px;
+    background: linear-gradient(90deg, rgba(102, 126, 234, 0.6), rgba(245, 87, 108, 0.6));
+    transform-origin: left center;
+}
+
+/* Canvas Controls */
+.canvas-controls {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.control-btn {
+    width: 44px;
+    height: 44px;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(10px);
+}
+
+body.dark .control-btn {
+    background: rgba(38, 38, 38, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.control-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.tooltip {
+    position: absolute;
+    padding: 5px 10px;
+    background: rgba(0,0,0,0.8);
+    color: #fff;
+    border-radius: 4px;
+    pointer-events: none;
+    font-size: 0.9rem;
+    z-index: 10;
+}
+
+.parent-node-select-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 4px;
+}
+.status-message {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    padding: 12px 16px;
+    border-radius: 6px;
+    color: white;
+    font-size: 14px;
+    z-index: 1000;
+    opacity: 0;
+    transform: translateY(-20px);
+    transition: all 0.3s ease;
+}
+.status-message.success {
+    background: #28a745;
+}
+.status-message.error {
+    background: #dc3545;
+}
+.status-message.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+.map-selector {
+    padding: 16px 20px;
+    border-bottom: 1px solid #e5e5e5;
+    background: #f8f9fa;
+}
+
+.map-select {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #e5e5e5;
+    border-radius: 6px;
+    background: white;
+    font-size: 14px;
+    margin-bottom: 8px;
+}
+body.dark .map-selector {
+    background: rgba(22, 33, 62, 0.3);
+    border-bottom: 1px solid rgba(102, 126, 234, 0.2);
+}
+.map-actions {
+    display: flex;
+    gap: 8px;
+}
+.map-action-btn {
+    flex: 1; /* Make buttons equal width */
+    padding: 6px 12px;
+    font-size: 12px;
+    border: 1px solid #e5e5e5;
+    background: white;
+    border-radius: 4px; /* All buttons get same rounded corners */
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.map-action-btn:hover {
+    background: #f5f5f5;
+}
+body.dark .map-action-btn:hover {
+    background: rgba(102, 126, 234, 0.2) !important;
+    border-color: rgba(102, 126, 234, 0.6) !important;
+}
+
+body.dark .map-action-btn {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(102, 126, 234, 0.3) !important;
+    color: #e5e5e5 !important;
+}
+
+.side-panel.collapsed .map-selector {
+    display: none;
+}
+
+/* Node Details Modal */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.modal-overlay.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    max-width: 500px;
+    width: 90vw;
+    max-height: 80vh;
+    overflow: hidden;
+    transform: scale(0.7) translateY(50px);
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.modal-overlay.show .modal {
+    transform: scale(1) translateY(0);
+}
+
+body.dark .modal {
+    background: #1a1a1a;
+    border: 1px solid #333;
+}
+
+.modal-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid #e5e5e5;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+body.dark .modal-header {
+    border-bottom: 1px solid #333;
+}
+
+.modal-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.modal-close {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    transition: all 0.2s ease;
+}
+
+.modal-close:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.1);
+}
+
+.modal-content {
+    padding: 24px;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.modal-section {
+    margin-bottom: 20px;
+}
+
+.modal-section:last-child {
+    margin-bottom: 0;
+}
+
+.modal-section-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+}
+
+body.dark .modal-section-title {
+    color: #999;
+}
+
+.modal-info-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    padding: 8px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.modal-info-item:last-child {
+    border-bottom: none;
+}
+
+body.dark .modal-info-item {
+    border-bottom: 1px solid #333;
+}
+
+.modal-info-label {
+    font-weight: 500;
+    color: #333;
+    min-width: 80px;
+}
+
+body.dark .modal-info-label {
+    color: #e5e5e5;
+}
+
+.modal-info-value {
+    color: #666;
+    text-align: right;
+    word-break: break-word;
+    white-space: pre-wrap;
+}
+
+body.dark .modal-info-value {
+    color: #ccc;
+}
+
+.modal-attribute-item {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    padding: 12px;
+    margin-bottom: 8px;
+}
+
+.modal-attribute-item:last-child {
+    margin-bottom: 0;
+}
+
+body.dark .modal-attribute-item {
+    background: #262626;
+    border: 1px solid #404040;
+}
+
+.modal-attribute-name {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 4px;
+}
+
+body.dark .modal-attribute-name {
+    color: #e5e5e5;
+}
+
+.modal-attribute-value {
+    color: #666;
+    line-height: 1.4;
+    white-space: pre-wrap;
+}
+
+body.dark .modal-attribute-value {
+    color: #ccc;
+}
+
+.connection-group {
+    margin-bottom: 16px;
+}
+
+.connection-group:last-child {
+    margin-bottom: 0;
+}
+
+.connection-group-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+body.dark .connection-group-title {
+    color: #e5e5e5;
+}
+
+.connection-arrow {
+    font-size: 12px;
+}
+
+.connection-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.connection-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.connection-item:hover {
+    background: #e3f2fd;
+    border-color: #667eea;
+    transform: translateX(4px);
+}
+
+body.dark .connection-item {
+    background: #262626;
+    border: 1px solid #404040;
+}
+
+body.dark .connection-item:hover {
+    background: #333;
+    border-color: #667eea;
+}
+
+.connection-name {
+    font-weight: 500;
+    color: #333;
+}
+
+body.dark .connection-name {
+    color: #e5e5e5;
+}
+
+.connection-type {
+    font-size: 12px;
+    color: #666;
+    background: #e9ecef;
+    padding: 2px 6px;
+    border-radius: 10px;
+}
+
+body.dark .connection-type {
+    color: #ccc;
+    background: #404040;
+}
+
+/* Enhanced Tooltip */
+.node-tooltip {
+    position: absolute;
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    pointer-events: none;
+    z-index: 100;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    white-space: nowrap;
+}
+
+body.dark .node-tooltip {
+    background: rgba(255, 255, 255, 0.9);
+    color: #333;
+}
+
+/* Update form elements to have glassy look */
+.config-input, .config-select, .map-select {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid rgba(102, 126, 234, 0.3);
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    color: #e5e5e5;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+.config-input:focus, .config-select:focus, .map-select:focus {
+    outline: none;
+    border-color: rgba(102, 126, 234, 0.8);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Update tool items */
+.tool-item {
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(102, 126, 234, 0.2);
+    border-radius: 8px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    backdrop-filter: blur(10px);
+}
+
+.tool-item:hover {
+    background: rgba(102, 126, 234, 0.2);
+    border-color: rgba(102, 126, 234, 0.5);
+    transform: translateX(2px);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+/* Update buttons to have glassy effect */
+.action-btn, .map-action-btn {
+    padding: 8px 16px;
+    border: 1px solid rgba(102, 126, 234, 0.3);
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 14px;
+    color: #e5e5e5;
+}
+
+.action-btn:hover, .map-action-btn:hover {
+    background: rgba(102, 126, 234, 0.2);
+    border-color: rgba(102, 126, 234, 0.6);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+/* Update save button to match gradient theme */
+.save-node-btn {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.8) 0%, rgba(118, 75, 162, 0.8) 100%);
+    border: 1px solid rgba(102, 126, 234, 0.5);
+    border-radius: 8px;
+    color: white;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    margin-top: 20px;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    backdrop-filter: blur(10px);
+}
+
+.save-node-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+    background: linear-gradient(135deg, rgba(102, 126, 234, 1) 0%, rgba(118, 75, 162, 1) 100%);
+}
+
+/* Update node config sections */
+.node-config, .edit-node-config {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(102, 126, 234, 0.2);
+    border-radius: 8px;
+    padding: 16px;
+    margin-top: 16px;
+    backdrop-filter: blur(10px);
+}
+
+/* Update attribute items */
+.attribute-item {
+    margin-bottom: 16px;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(102, 126, 234, 0.2);
+    border-radius: 6px;
+    backdrop-filter: blur(5px);
+}
+
+/* Update custom attributes section */
+.custom-attributes {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(102, 126, 234, 0.2);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* Update attribute inputs */
+.attribute-name-input, .attribute-value-input {
+    padding: 8px 10px;
+    border: 1px solid rgba(102, 126, 234, 0.3);
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(5px);
+    color: #e5e5e5;
+    font-size: 13px;
+    transition: all 0.2s ease;
+}
+
+.attribute-name-input:focus, .attribute-value-input:focus {
+    outline: none;
+    border-color: rgba(102, 126, 234, 0.8);
+    box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+/* Update theme toggle */
+.theme-toggle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(102, 126, 234, 0.3);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.theme-toggle:hover {
+    background: rgba(102, 126, 234, 0.2);
+    transform: scale(1.05);
+}
+
+/* Update expand button */
+.expand-btn {
+    background: rgba(26, 26, 46, 0.9);
+    border: 1px solid rgba(102, 126, 234, 0.3);
+    backdrop-filter: blur(10px);
+    color: #e5e5e5;
+}
+
+.expand-btn:hover {
+    background: rgba(102, 126, 234, 0.2);
+    transform: scale(1.05);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+/* Update collapse button */
+.collapse-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(102, 126, 234, 0.2);
+    backdrop-filter: blur(5px);
+    color: #e5e5e5;
+}
+
+.collapse-btn:hover {
+    background: rgba(102, 126, 234, 0.2);
+}
+
+/* Update canvas area to ensure seamless blend */
+.canvas-area {
+    flex: 1;
+    background: transparent; /* Let the D3.js background show through */
+    position: relative;
+    overflow: hidden;
+}
+
+/* Update canvas grid to be more subtle */
+.canvas-grid {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0.05; /* Make it even more subtle */
+    background-image: 
+        linear-gradient(rgba(102, 126, 234, 0.1) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(102, 126, 234, 0.1) 1px, transparent 1px);
+    background-size: 20px 20px;
+    pointer-events: none;
+}
+
+/* Add a subtle glow to section titles */
+.tool-section h3, .config-label, .attributes-title {
+    color: rgba(102, 126, 234, 0.9);
+    text-shadow: 0 0 10px rgba(102, 126, 234, 0.3);
+}
+
+/* Update logo to match theme */
+.logo {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.8) 0%, rgba(118, 75, 162, 0.8) 100%);
+    border: 1px solid rgba(102, 126, 234, 0.5);
+    box-shadow: 0 0 15px rgba(102, 126, 234, 0.4);
+}
+
+.project-name {
+    color: #e5e5e5;
+    text-shadow: 0 0 10px rgba(102, 126, 234, 0.3);
+}
+
+/* DARK MODE CLEANUP - Add/Replace these styles in your custom.css */
+
+/* Remove any conflicting dark mode overrides and use consistent styling */
+
+/* Ensure all inputs use the glassy style consistently */
+.config-input, .config-select, .map-select, 
+.attribute-name-input, .attribute-value-input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid rgba(102, 126, 234, 0.3);
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.05) !important;
+    backdrop-filter: blur(10px);
+    color: #e5e5e5 !important;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+/* Remove the old dark mode overrides that conflict */
+body.dark .config-input,
+body.dark .config-select,
+body.dark .map-select,
+body.dark .attribute-name-input,
+body.dark .attribute-value-input {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(102, 126, 234, 0.3) !important;
+    color: #e5e5e5 !important;
+}
+
+/* Focus states for all inputs */
+.config-input:focus, .config-select:focus, .map-select:focus,
+.attribute-name-input:focus, .attribute-value-input:focus {
+    outline: none;
+    border-color: rgba(102, 126, 234, 0.8) !important;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+    background: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Fix tool icons - make them more visible */
+.tool-icon {
+    width: 20px;
+    height: 20px;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.6) 0%, rgba(118, 75, 162, 0.6) 100%);
+    border-radius: 4px;
+    flex-shrink: 0;
+    border: 1px solid rgba(102, 126, 234, 0.4);
+}
+
+/* Ensure labels are visible */
+.config-label, .modal-section-title, .attributes-title {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: rgba(102, 126, 234, 0.9) !important;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    text-shadow: 0 0 10px rgba(102, 126, 234, 0.3);
+}
+
+/* Fix section headers in tools */
+.tool-section h3 {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: rgba(102, 126, 234, 0.9) !important;
+    opacity: 1;
+    transition: opacity 0.2s ease;
+    text-shadow: 0 0 10px rgba(102, 126, 234, 0.3);
+}
+
+/* Remove old dark mode override */
+body.dark .tool-section h3 {
+    color: rgba(102, 126, 234, 0.9) !important;
+}
+
+/* Ensure all text is properly visible */
+.panel-title {
+    font-weight: 600;
+    font-size: 16px;
+    opacity: 1;
+    transition: opacity 0.2s ease;
+    color: #e5e5e5 !important;
+    text-shadow: 0 0 10px rgba(102, 126, 234, 0.3);
+}
+
+/* Fix tool text visibility */
+.tool-text {
+    opacity: 1;
+    transition: opacity 0.2s ease;
+    color: #e5e5e5 !important;
+}
+
+/* Remove old dark mode conflicts */
+body.dark .tool-text,
+body.dark .panel-title {
+    color: #e5e5e5 !important;
+}
+
+/* Ensure placeholders are visible */
+.config-input::placeholder,
+.attribute-name-input::placeholder,
+.attribute-value-input::placeholder {
+    color: rgba(229, 229, 229, 0.5) !important;
+    font-size: 12px;
+}
+
+/* Fix dropdown arrows and select styling */
+.config-select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='rgba(102, 126, 234, 0.8)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px;
+    padding-right: 40px;
+}
+
+/* Fix option styling for dropdowns */
+.config-select option {
+    background: rgba(26, 26, 46, 0.95);
+    color: #e5e5e5;
+    padding: 8px;
+}
+
+/* Remove any conflicting action button styles */
+body.dark .action-btn,
+body.dark .map-action-btn {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(102, 126, 234, 0.3) !important;
+    color: #e5e5e5 !important;
+}
+
+body.dark .action-btn:hover,
+body.dark .map-action-btn:hover {
+    background: rgba(102, 126, 234, 0.2) !important;
+    border-color: rgba(102, 126, 234, 0.6) !important;
+}
+
+/* Ensure node config sections are visible */
+.node-config.active,
+.edit-node-config.active {
+    display: block;
+    background: rgba(255, 255, 255, 0.02) !important;
+    border: 1px solid rgba(102, 126, 234, 0.2) !important;
+    backdrop-filter: blur(10px);
+}
+
+/* Remove old dark mode overrides for node config */
+body.dark .node-config,
+body.dark .edit-node-config {
+    background: rgba(255, 255, 255, 0.02) !important;
+    border: 1px solid rgba(102, 126, 234, 0.2) !important;
+}
+
+/* Fix attribute item styling */
+body.dark .attribute-item {
+    background: rgba(255, 255, 255, 0.03) !important;
+    border: 1px solid rgba(102, 126, 234, 0.2) !important;
+}
+
+/* Ensure remove buttons are visible */
+.remove-attribute-btn,
+.remove-parent-btn,
+.add-attribute-btn {
+    background: linear-gradient(135deg, rgba(220, 53, 69, 0.8), rgba(180, 40, 55, 0.8)) !important;
+    border: 1px solid rgba(220, 53, 69, 0.5);
+    color: white !important;
+}
+
+.add-attribute-btn {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.8), rgba(118, 75, 162, 0.8)) !important;
+    border: 1px solid rgba(102, 126, 234, 0.5);
+}
+
+/* Clean up any remaining dark mode conflicts */
+body.dark {
+    background: radial-gradient(ellipse at center, #1a1a2e 0%, #16213e 50%, #0f0f23 100%) !important;
+    color: #e5e5e5 !important;
+}
+
+/* Make sure canvas area is transparent */
+body.dark .canvas-area {
+    background: transparent !important;
+}
+
+/* Add these styles to your custom.css for the share modal */
+
+/* Share Modal Specific Styles */
+#shareModal .modal {
+    max-width: 600px;
+    width: 95vw;
+    max-height: 90vh;
+}
+
+.share-option {
+    margin-bottom: 16px;
+}
+
+.share-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: rgba(102, 126, 234, 0.9);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.share-input-group {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+}
+
+.share-input, .share-textarea {
+    flex: 1;
+    padding: 10px 12px;
+    border: 1px solid rgba(102, 126, 234, 0.3);
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    color: #e5e5e5;
+    font-size: 13px;
+    font-family: 'Courier New', monospace;
+    resize: none;
+}
+
+.share-textarea {
+    min-height: 80px;
+    resize: vertical;
+}
+
+.share-input:focus, .share-textarea:focus {
+    outline: none;
+    border-color: rgba(102, 126, 234, 0.8);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.share-copy-btn {
+    padding: 10px 16px;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.8) 0%, rgba(118, 75, 162, 0.8) 100%);
+    border: 1px solid rgba(102, 126, 234, 0.5);
+    border-radius: 6px;
+    color: white;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    backdrop-filter: blur(10px);
+}
+
+.share-copy-btn:hover {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 1) 0%, rgba(118, 75, 162, 1) 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.share-description {
+    font-size: 11px;
+    color: rgba(229, 229, 229, 0.7);
+    margin-top: 4px;
+    font-style: italic;
+}
+
+/* Embed Options Styling */
+.embed-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.embed-option-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.embed-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: #e5e5e5;
+    cursor: pointer;
+}
+
+.embed-label input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: rgba(102, 126, 234, 0.8);
+    cursor: pointer;
+}
+
+.embed-size-input {
+    width: 60px;
+    padding: 4px 6px;
+    border: 1px solid rgba(102, 126, 234, 0.3);
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.05);
+    color: #e5e5e5;
+    font-size: 12px;
+    text-align: center;
+}
+
+.embed-size-input:focus {
+    outline: none;
+    border-color: rgba(102, 126, 234, 0.8);
+    box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+}
+
+/* Embed Preview */
+.embed-preview {
+    border: 1px solid rgba(102, 126, 234, 0.3);
+    border-radius: 8px;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.02);
+    backdrop-filter: blur(5px);
+    text-align: center;
+}
+
+.embed-preview iframe {
+    border: 1px solid rgba(102, 126, 234, 0.4);
+    border-radius: 6px;
+    background: #fff;
+    max-width: 100%;
+}
+
+.map-select-container {
+    position: relative;
+    width: 100%;
+}
+
+.map-rename-input {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    padding: 8px 12px;
+    border: 1px solid rgba(102, 126, 234, 0.3);
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    color: #e5e5e5;
+    font-size: 14px;
+    font-family: inherit;
+    box-sizing: border-box;
+    z-index: 10;
+}
+
+.map-rename-input:focus {
+    outline: none;
+    border-color: rgba(102, 126, 234, 0.8);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Replace the .map-rename-input styles in your custom.css with this: */
+
+.map-rename-input {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    padding: 8px 12px;
+    border: 1px solid rgba(102, 126, 234, 0.3);
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    color: #e5e5e5;
+    font-size: 14px;
+    font-family: inherit;
+    box-sizing: border-box;
+    z-index: 10;
+    
+    /* Match the select box styling exactly */
+    margin-bottom: 8px;           /* Same as .map-select */
+    min-height: 40px;             /* Ensure consistent height */
+    line-height: normal;          /* Reset line-height */
+    vertical-align: top;          /* Align properly */
+}
+
+.map-rename-input:focus {
+    outline: none;
+    border-color: rgba(102, 126, 234, 0.8);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Ensure the container has proper positioning */
+.map-select-container {
+    position: relative;
+    width: 100%;
+    margin-bottom: 8px;           /* Match .map-select margin */
+}
+
+/* Add these styles to your custom.css for the rename tooltip */
+
+.rename-tooltip {
+    position: fixed;
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0;
+    transform: translateY(-5px);
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    border: 1px solid rgba(102, 126, 234, 0.5);
+    backdrop-filter: blur(10px);
+}
+
+.rename-tooltip.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Dark mode compatibility */
+body.dark .rename-tooltip {
+    background: rgba(26, 26, 46, 0.95);
+    border: 1px solid rgba(102, 126, 234, 0.6);
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+    #shareModal .modal {
+        width: 98vw;
+        margin: 10px;
+    }
+    
+    .share-input-group {
+        flex-direction: column;
+    }
+    
+    .share-copy-btn {
+        align-self: flex-end;
+    }
+    
+    .embed-options {
+        grid-template-columns: 1fr;
+    }
+    
+    .embed-preview iframe {
+        width: 100%;
+        height: 200px;
+    }
+}
+
+/* Animation for the share modal */
+#shareModal {
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+#shareModal.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+#shareModal .modal {
+    transform: scale(0.8) translateY(30px);
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+#shareModal.show .modal {
+    transform: scale(1) translateY(0);
+}
+
+.config-textarea {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid rgba(102, 126, 234, 0.3);
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.05);
+    color: #e5e5e5;
+    font-size: 14px;
+    font-family: inherit;
+    resize: vertical;
+    min-height: 60px;
+}
+
+.config-textarea:focus {
+    outline: none;
+    border-color: rgba(102, 126, 234, 0.8);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .side-panel {
+        width: 280px;
+    }
+    
+    .top-actions {
+        gap: 8px;
+    }
+    
+    .action-btn {
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+}
+
+.side-panel.collapsed .panel-header,
+.side-panel.collapsed .panel-content,
+.side-panel.collapsed .collapse-btn {
+    display: none !important;
+}

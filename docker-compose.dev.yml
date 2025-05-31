@@ -1,0 +1,37 @@
+# Development override for docker-compose.yml
+# Use with: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+version: '3.8'
+
+services:
+  app:
+    build:
+      target: builder  # Use builder stage for development
+    environment:
+      - NODE_ENV=development
+      - DEBUG_MODE=true
+      - HOT_RELOAD=true
+      - LOG_LEVEL=debug
+    volumes:
+      # Mount source code for live development
+      - ./public:/app/public:ro
+      - ./server.js:/app/server.js:ro
+      - ./package.json:/app/package.json:ro
+      # Mount logs for debugging
+      - ./logs:/app/logs
+    ports:
+      - "3000:3000"
+      - "9229:9229"  # Node.js debugging port
+    command: ["node", "--inspect=0.0.0.0:9229", "server.js"]
+    restart: "no"  # Don't restart in development
+    
+  redis:
+    ports:
+      - "6379:6379"  # Expose Redis port for debugging
+    command: redis-server --appendonly yes --loglevel debug
+    restart: "no"  # Don't restart in development
+
+# Development-specific volumes
+volumes:
+  redis-data:
+    driver: local

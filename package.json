@@ -1,0 +1,68 @@
+{
+  "name": "system-mapper",
+  "version": "1.0.0",
+  "description": "Interactive system architecture visualization tool with D3.js and Redis backend",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "build": "echo 'Building production assets...' && npm ci --only=production",
+    "test": "echo 'No tests specified yet' && exit 0",
+    "lint": "echo 'No linting configured yet' && exit 0",
+    
+    "setup": "node scripts/setup.js",
+    "setup:env": "cp .env.example .env 2>/dev/null || echo 'PORT=3000\nNODE_ENV=production\nREDIS_HOST=redis\nREDIS_PORT=6379\nDEFAULT_MAP_NAME=My System Map\nENABLE_LOGGING=true\nCORS_ORIGINS=*' > .env",
+    "health": "node scripts/health-check.js",
+    
+    "docker:build": "docker build -t system-mapper .",
+    "docker:run": "docker run -d -p 3000:3000 --name system-mapper system-mapper",
+    "docker:stop": "docker stop system-mapper && docker rm system-mapper",
+    "docker:logs": "docker logs -f system-mapper",
+    
+    "compose:up": "docker-compose up -d",
+    "compose:down": "docker-compose down",
+    "compose:logs": "docker-compose logs -f",
+    "compose:build": "docker-compose build --no-cache",
+    "compose:restart": "docker-compose restart",
+    
+    "compose:dev": "docker-compose -f docker-compose.yml -f docker-compose.dev.yml up",
+    "compose:dev:build": "docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build",
+    
+    "redis:flush": "docker-compose exec redis redis-cli FLUSHALL"
+  },
+  "keywords": [
+    "system-mapping",
+    "visualization",
+    "d3js",
+    "architecture",
+    "redis",
+    "nodejs",
+    "express",
+    "docker",
+    "interactive",
+    "diagrams"
+  ],
+  "author": "Michael William",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/michael-william/system-mapper.git"
+  },
+  "bugs": {
+    "url": "https://github.com/michael-william/system-mapper/issues"
+  },
+  "homepage": "https://github.com/michael-william/system-mapper#readme",
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "redis": "^4.6.7"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}

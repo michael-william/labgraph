@@ -1,0 +1,64 @@
+services:
+  # System Mapper Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      # Remove the "target: production" line since we're using single-stage build
+    container_name: system-mapper-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=${NODE_ENV:-production}
+      - PORT=${PORT:-3000}
+      - REDIS_HOST=${REDIS_HOST:-redis}
+      - REDIS_PORT=${REDIS_PORT:-6379}
+      - DEFAULT_MAP_NAME=${DEFAULT_MAP_NAME:-My System Map}
+      - MAX_FILE_SIZE=${MAX_FILE_SIZE:-10485760}
+      - ENABLE_LOGGING=${ENABLE_LOGGING:-true}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - CORS_ORIGINS=${CORS_ORIGINS:-*}
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - system-mapper-network
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Redis Database
+  redis:
+    image: redis:7-alpine
+    container_name: system-mapper-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis-data:/data
+      - ./redis.conf:/usr/local/etc/redis/redis.conf:ro
+    networks:
+      - system-mapper-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+
+# Named volumes for data persistence
+volumes:
+  redis-data:
+    driver: local
+    name: system-mapper-redis-data
+
+# Custom network
+networks:
+  system-mapper-network:
+    driver: bridge
+    name: system-mapper-network

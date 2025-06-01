@@ -64,3 +64,6 @@ temp/
 
 # Docker volumes
 docker-volumes/
+
+# Support files
+graphics

@@ -24,8 +24,10 @@
 
 ## 🖼️ See It In Action
 
-![System Mapper Interface](docs/screenshot-main.png)
+![System Mapper Interface](docs/Example%20map.png)
 *Interactive system architecture visualization*
+![System Mapper Interface](docs/Example%20detail.png)
+*Add custom attributes for quick reference*
 
 ---
 

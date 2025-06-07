@@ -378,6 +378,140 @@ app.post('/api/maps/:id/nodes', async (req, res) => {
     }
 });
 
+// Enhanced node rename endpoint that preserves all link relationships
+app.put('/api/maps/:id/nodes/:nodeId/rename', async (req, res) => {
+    try {
+        const mapId = req.params.id;
+        const oldNodeId = req.params.nodeId;
+        const { newId, group, description, attributes, parentNodes } = req.body;
+        
+        log('debug', `Renaming node: ${oldNodeId} -> ${newId} in map: ${mapId}`);
+        
+        if (!newId || newId.trim() === '') {
+            return res.status(400).json({ error: 'New node ID is required' });
+        }
+        
+        const mapData = await redisClient.get(`map:${mapId}`);
+        if (!mapData) {
+            return res.status(404).json({ error: 'Map not found' });
+        }
+        
+        const map = JSON.parse(mapData);
+        const nodeIndex = map.nodes.findIndex(n => n.id === oldNodeId);
+        
+        if (nodeIndex === -1) {
+            return res.status(404).json({ error: 'Node not found' });
+        }
+        
+        // Check if new ID already exists (but not the same node)
+        const existingNode = map.nodes.find(n => n.id === newId && n.id !== oldNodeId);
+        if (existingNode) {
+            return res.status(400).json({ error: 'A node with the new name already exists' });
+        }
+        
+        // Count links before update for logging
+        const linksBefore = map.links.filter(link => 
+            link.source === oldNodeId || link.target === oldNodeId
+        );
+        
+        // Update the node
+        map.nodes[nodeIndex] = {
+            id: newId,
+            group: group || 'Default',
+            description: description || '',
+            attributes: attributes || []
+        };
+        
+        // CRITICAL FIX: Update ALL links that reference the old node ID
+        let linksUpdated = 0;
+        map.links = map.links.map(link => {
+            let updatedLink = { ...link };
+            let changed = false;
+            
+            // Update source references
+            if (link.source === oldNodeId) {
+                updatedLink.source = newId;
+                changed = true;
+                log('debug', `Updated link source: ${oldNodeId} -> ${newId}`);
+            }
+            
+            // Update target references
+            if (link.target === oldNodeId) {
+                updatedLink.target = newId;
+                changed = true;
+                log('debug', `Updated link target: ${oldNodeId} -> ${newId}`);
+            }
+            
+            if (changed) linksUpdated++;
+            return updatedLink;
+        });
+        
+        // Handle parent node relationships (remove existing incoming links, add new ones)
+        if (parentNodes !== undefined) {
+            log('debug', `Updating parent relationships for renamed node: ${newId}`);
+            
+            // Remove ALL existing links where this node is the target
+            const linksBeforeParentUpdate = map.links.length;
+            map.links = map.links.filter(link => link.target !== newId);
+            const linksRemoved = linksBeforeParentUpdate - map.links.length;
+            
+            // Add new parent links
+            let linksAdded = 0;
+            parentNodes.forEach(parentId => {
+                if (parentId && parentId.trim()) {
+                    const parentExists = map.nodes.find(n => n.id === parentId);
+                    if (parentExists) {
+                        map.links.push({
+                            source: parentId,
+                            target: newId
+                        });
+                        linksAdded++;
+                        log('debug', `Added parent relationship: ${parentId} -> ${newId}`);
+                    }
+                }
+            });
+            
+            log('debug', `Parent relationship update: removed ${linksRemoved}, added ${linksAdded}`);
+        }
+        
+        map.updated = new Date().toISOString();
+        
+        // Update Redis
+        await redisClient.set(`map:${mapId}`, JSON.stringify(map));
+        
+        // Update metadata
+        await redisClient.hSet('maps:list', mapId, JSON.stringify({
+            id: mapId,
+            name: map.name,
+            description: map.description,
+            nodeCount: map.nodes.length,
+            updated: map.updated
+        }));
+        
+        // Count links after for verification
+        const linksAfter = map.links.filter(link => 
+            link.source === newId || link.target === newId
+        );
+        
+        log('info', `Node renamed successfully: ${oldNodeId} -> ${newId}`);
+        log('info', `Links preserved: ${linksBefore.length} before, ${linksAfter.length} after`);
+        log('debug', `Total links updated: ${linksUpdated}`);
+        
+        res.json({
+            message: 'Node renamed successfully with link preservation',
+            oldId: oldNodeId,
+            newId: newId,
+            linksUpdated: linksUpdated,
+            linksBefore: linksBefore.length,
+            linksAfter: linksAfter.length,
+            node: map.nodes[nodeIndex]
+        });
+    } catch (error) {
+        log('error', 'Error renaming node:', error.message);
+        res.status(500).json({ error: 'Failed to rename node' });
+    }
+});
+
 // Update node
 app.put('/api/maps/:id/nodes/:nodeId', async (req, res) => {
     try {
@@ -908,3 +1042,36 @@ process.on('unhandledRejection', (error) => {
 startServer().catch(console.error);
 
 module.exports = app;
+
+// Utility function to validate and fix link integrity
+function validateAndFixLinkIntegrity(map) {
+    const nodeIds = new Set(map.nodes.map(n => n.id));
+    const validLinks = [];
+    const orphanedLinks = [];
+    
+    map.links.forEach(link => {
+        const sourceExists = nodeIds.has(link.source);
+        const targetExists = nodeIds.has(link.target);
+        
+        if (sourceExists && targetExists) {
+            validLinks.push(link);
+        } else {
+            orphanedLinks.push({
+                ...link,
+                reason: `${!sourceExists ? 'source' : ''}${!sourceExists && !targetExists ? '+' : ''}${!targetExists ? 'target' : ''} missing`
+            });
+        }
+    });
+    
+    if (orphanedLinks.length > 0) {
+        log('warn', `Found ${orphanedLinks.length} orphaned links:`, orphanedLinks);
+    }
+    
+    return {
+        validLinks,
+        orphanedLinks,
+        fixed: orphanedLinks.length > 0
+    };
+}
+
+// =============================================================================

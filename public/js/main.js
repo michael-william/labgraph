@@ -376,7 +376,159 @@ window.SystemMapper.debug = {
         
         console.log('📊 Node Connection Summary:', summary);
         return summary;
+    },
+
+        // Test node renaming functionality
+    async testNodeRename(oldId, newId) {
+        if (!window.currentMapData) {
+            console.error('❌ No map loaded');
+            return;
+        }
+        
+        const node = window.currentMapData.nodes.find(n => n.id === oldId);
+        if (!node) {
+            console.error(`❌ Node "${oldId}" not found`);
+            return;
+        }
+        
+        console.log(`🔍 Testing rename: ${oldId} -> ${newId}`);
+        console.log('📊 Links before rename:', window.currentMapData.links.length);
+        
+        // Count links involving this node
+        const linksInvolving = window.currentMapData.links.filter(l => 
+            l.source === oldId || l.target === oldId
+        );
+        console.log(`📊 Links involving "${oldId}":`, linksInvolving.length);
+        
+        try {
+            // Check if we have the new rename endpoint
+            const response = await fetch(`/api/maps/${window.currentMapId}/nodes/${encodeURIComponent(oldId)}/rename`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    newId: newId,
+                    group: node.group,
+                    description: node.description || '',
+                    attributes: node.attributes || []
+                })
+            });
+            
+            if (!response.ok) {
+                // If rename endpoint doesn't exist, fall back to basic test
+                if (response.status === 404) {
+                    console.warn('⚠️ Rename endpoint not implemented yet - this is expected before applying the server fix');
+                    return false;
+                }
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
+            const result = await response.json();
+            console.log('✅ Rename successful:', result);
+            
+            // Reload and verify
+            await loadSelectedMap();
+            
+            const linksAfter = window.currentMapData.links.filter(l => 
+                l.source === newId || l.target === newId
+            );
+            console.log(`📊 Links involving "${newId}" after rename:`, linksAfter.length);
+            
+            if (linksAfter.length === linksInvolving.length) {
+                console.log('✅ All links preserved successfully!');
+                return true;
+            } else {
+                console.warn('⚠️ Link count mismatch - some links may have been lost');
+                return false;
+            }
+            
+        } catch (error) {
+            console.error('❌ Rename test failed:', error);
+            return false;
+        }
+    },
+    
+    // Validate current map link integrity
+    validateLinks() {
+        if (!window.currentMapData) {
+            console.error('❌ No map loaded');
+            return false;
+        }
+        
+        const nodeIds = new Set(window.currentMapData.nodes.map(n => n.id));
+        const orphanedLinks = window.currentMapData.links.filter(link => 
+            !nodeIds.has(link.source) || !nodeIds.has(link.target)
+        );
+        
+        if (orphanedLinks.length === 0) {
+            console.log('✅ All links are valid!');
+            return true;
+        } else {
+            console.warn(`⚠️ Found ${orphanedLinks.length} orphaned links:`);
+            orphanedLinks.forEach(link => {
+                console.warn(`  ${link.source} -> ${link.target}`);
+                if (!nodeIds.has(link.source)) console.warn(`    Missing source: ${link.source}`);
+                if (!nodeIds.has(link.target)) console.warn(`    Missing target: ${link.target}`);
+            });
+            return false;
+        }
+    },
+
+    // Simple test to reproduce the current bug
+    async testCurrentBug() {
+        if (!window.currentMapData || window.currentMapData.nodes.length < 1) {
+            console.error('❌ No map loaded or no nodes available');
+            return;
+        }
+
+        console.log('🐛 Testing current node rename bug...');
+        
+        // Find a node to test with
+        const testNode = window.currentMapData.nodes[0];
+        const originalName = testNode.id;
+        const testName = `${originalName}_TEST`;
+        
+        console.log(`📝 Original node: ${originalName}`);
+        
+        // Check existing links
+        const linksBefore = window.currentMapData.links.filter(l => 
+            l.source === originalName || l.target === originalName
+        );
+        console.log(`📊 Links before: ${linksBefore.length}`);
+        
+        // Simulate editing the node using the current (buggy) approach
+        try {
+            document.getElementById('editNodeSelect').value = originalName;
+            populateEditNodeForm();
+            
+            // Change the name
+            document.getElementById('editNodeName').value = testName;
+            
+            console.log('⚠️ About to trigger the bug with saveEditedNode()...');
+            await saveEditedNode();
+            
+            // Check links after
+            const linksAfter = window.currentMapData.links.filter(l => 
+                l.source === testName || l.target === testName
+            );
+            console.log(`📊 Links after: ${linksAfter.length}`);
+            
+            if (linksAfter.length < linksBefore.length) {
+                console.error(`🐛 BUG CONFIRMED: Lost ${linksBefore.length - linksAfter.length} links!`);
+            } else {
+                console.log('✅ Links preserved (bug may be fixed)');
+            }
+            
+            // Revert the name change for cleanup
+            document.getElementById('editNodeSelect').value = testName;
+            populateEditNodeForm();
+            document.getElementById('editNodeName').value = originalName;
+            await saveEditedNode();
+            
+        } catch (error) {
+            console.error('❌ Test failed:', error);
+        }
     }
+
 };
 
 // Add convenience functions to global scope for easy testing
@@ -385,6 +537,9 @@ window.testAllConnectionsAPI = window.SystemMapper.debug.testAllConnectionsAPI;
 window.testModal = window.SystemMapper.debug.testModalWithAPI;
 window.validateMap = window.SystemMapper.debug.validateMapData;
 window.getNodeSummary = window.SystemMapper.debug.getNodeConnectionSummary;
+window.testRename = window.SystemMapper.debug.testNodeRename;
+window.validateLinks = window.SystemMapper.debug.validateLinks;
+window.testBug = window.SystemMapper.debug.testCurrentBug;
 
 console.log('🔧 API testing functions available:');
 console.log('   - testNodeAPI(nodeId) - Test node connections API');
@@ -392,3 +547,7 @@ console.log('   - testAllConnectionsAPI() - Test all connections API');
 console.log('   - testModal() - Test modal functionality');
 console.log('   - validateMap() - Validate map data integrity');
 console.log('   - getNodeSummary(nodeId) - Get connection summary for a node');
+console.log('🔧 Enhanced debugging functions available:');
+console.log('   - testRename(oldId, newId) - Test node renaming');
+console.log('   - validateLinks() - Check link integrity');
+console.log('   - testBug() - Reproduce the current bug');

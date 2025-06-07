@@ -198,8 +198,8 @@ async function saveEditedNode() {
         
         // Collect parent nodes
         const newParentNodes = Array.from(document.querySelectorAll('.edit-parent-node-select'))
-        .map(select => select.value)
-        .filter(value => value);
+            .map(select => select.value)
+            .filter(value => value);
         
         // Collect attributes
         const attributes = [];
@@ -234,16 +234,13 @@ async function saveEditedNode() {
                 return;
             }
             
-            console.log('🔄 Node name changed, will delete and recreate');
-            // If name changed, delete old and create new
-            await apiCall(`/api/maps/${window.currentMapId}/nodes/${originalNodeId}`, {
-                method: 'DELETE'
-            });
+            console.log('🔄 Node name changed, using link-preserving rename endpoint');
             
-            await apiCall(`/api/maps/${window.currentMapId}/nodes`, {
-                method: 'POST',
+            // NEW: Use the rename endpoint that preserves links
+            await apiCall(`/api/maps/${window.currentMapId}/nodes/${encodeURIComponent(originalNodeId)}/rename`, {
+                method: 'PUT',
                 body: JSON.stringify({
-                    id: newNodeName,
+                    newId: newNodeName,
                     group: newNodeType || 'Default',
                     description: newNodeDescription || '',
                     attributes: attributes,

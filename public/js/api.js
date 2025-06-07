@@ -137,7 +137,7 @@ async function saveNode() {
     
     const nodeData = {
         id: document.getElementById('nodeName').value,
-        group: document.getElementById('nodeType').value,
+        group: getSelectedNodeType('nodeType', 'nodeTypeCustom'),
         description: document.getElementById('nodeDescription').value || '', // ADD THIS LINE
         parentNodes: parentNodeValues,
         attributes: []
@@ -168,6 +168,7 @@ async function saveNode() {
         
         // Reload the map to get updated data
         await loadSelectedMap();
+        updateNodeTypeOptions(); // Add this line
         
         // Clear form fields
         document.getElementById('nodeName').value = '';
@@ -193,7 +194,7 @@ async function saveEditedNode() {
     try {
         // Get updated values
         const newNodeName = document.getElementById('editNodeName').value;
-        const newNodeType = document.getElementById('editNodeType').value;
+        const newNodeType = getSelectedNodeType('editNodeType', 'editNodeTypeCustom');
         const newNodeDescription = document.getElementById('editNodeDescription').value; 
         
         // Collect parent nodes
@@ -269,7 +270,8 @@ async function saveEditedNode() {
         console.log('✅ Node update completed, reloading map');
         await loadSelectedMap();
         updateEditNodeOptions();
-        
+        updateNodeTypeOptions(); // Add this line
+
         // Reselect the node (with potentially new name)
         document.getElementById('editNodeSelect').value = newNodeName;
         populateEditNodeForm();
@@ -304,4 +306,16 @@ async function deleteSelectedNode() {
     } catch (error) {
         showMessage('Failed to delete node', 'error');
     }
+}
+
+// Get the selected node type (from dropdown or custom input)
+function getSelectedNodeType(selectId, customInputId) {
+    const select = document.getElementById(selectId);
+    const customInput = document.getElementById(customInputId);
+    
+    if (customInput.style.display !== 'none' && customInput.value.trim()) {
+        return customInput.value.trim();
+    }
+    
+    return select.value || 'Default';
 }

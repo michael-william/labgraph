@@ -1,234 +1,298 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>System Mapper</title>
-    <link rel="stylesheet" href="custom.css">
-    <link rel="icon" href="assets/system_mapper_logo_main.svg" type="image/svg+xml">
-</head>
-<body>
+    <link rel="stylesheet" href="custom.css" />
+    <link
+      rel="icon"
+      href="assets/system_mapper_logo_main.svg"
+      type="image/svg+xml"
+    />
+  </head>
+  <body>
     <!-- Status Message -->
     <div id="statusMessage" class="status-message"></div>
-    
+
     <!-- Top Bar -->
     <div class="top-bar">
-        <div class="logo-section">
-            <div class="logo">
-                <img src="assets/system_mapper_logo_main.svg" alt="System Mapper" width="32" height="32">
-            </div>
-            <div class="project-name">System Map</div>
+      <div class="logo-section">
+        <div class="logo">
+          <img
+            src="assets/system_mapper_logo_main.svg"
+            alt="System Mapper"
+            width="32"
+            height="32"
+          />
         </div>
-        
-        <div class="top-actions">
-            <button class="action-btn" onclick="exportMap()">Export</button>
-            <button class="action-btn" onclick="shareMap()">Share</button>
-            <button class="action-btn" onclick="saveMap()">Save</button>
-            <!-- <button class="theme-toggle" onclick="toggleTheme()">🌙</button> -->
-        </div>
+        <div class="project-name">System Map</div>
+      </div>
+
+      <div class="top-actions">
+        <button class="action-btn" onclick="exportMap()">Export</button>
+        <button class="action-btn" onclick="shareMap()">Share</button>
+        <button class="action-btn" onclick="saveMap()">Save</button>
+        <!-- <button class="theme-toggle" onclick="toggleTheme()">🌙</button> -->
+      </div>
     </div>
-    
+
     <!-- Main Layout -->
     <div class="main-layout">
-        <!-- Side Panel -->
-        <div class="side-panel" id="sidePanel">
-            <button class="expand-btn" onclick="togglePanel()">›</button>
-            
-            <!-- Map Selector -->
-            <div class="map-selector">
-                <div class="map-select-container">
-                    <select class="map-select" id="mapSelector" onchange="loadSelectedMap()">
-                        <option value="">Loading maps...</option>
+      <!-- Side Panel -->
+      <div class="side-panel" id="sidePanel">
+        <button class="expand-btn" onclick="togglePanel()">›</button>
+
+        <!-- Map Selector -->
+        <div class="map-selector">
+          <div class="map-select-container">
+            <select
+              class="map-select"
+              id="mapSelector"
+              onchange="loadSelectedMap()"
+            >
+              <option value="">Loading maps...</option>
+            </select>
+            <input
+              type="text"
+              class="map-rename-input"
+              id="mapRenameInput"
+              style="display: none"
+              onkeydown="handleMapRenameKeydown(event)"
+              onblur="cancelMapRename()"
+            />
+          </div>
+          <div class="map-actions">
+            <button class="map-action-btn" onclick="createNewMap()">
+              Create
+            </button>
+            <button class="map-action-btn" onclick="uploadMap()">Upload</button>
+            <button class="map-action-btn" onclick="deleteCurrentMap()">
+              Delete
+            </button>
+          </div>
+          <input
+            type="file"
+            id="mapFileInput"
+            accept=".json"
+            style="display: none"
+            onchange="handleMapFileUpload(event)"
+          />
+        </div>
+
+        <div class="panel-header">
+          <div class="panel-title">Tools</div>
+          <button class="collapse-btn" onclick="togglePanel()">‹</button>
+        </div>
+
+        <div class="panel-content">
+          <div class="tool-section">
+            <div class="tool-item" onclick="selectTool('node', event)">
+              <div class="tool-icon"></div>
+              <div class="tool-text">Add Node</div>
+            </div>
+            <div class="tool-item" onclick="selectTool('edit', event)">
+              <div class="tool-icon"></div>
+              <div class="tool-text">Edit Node</div>
+            </div>
+          </div>
+
+          <!-- Add Node Configuration Section -->
+          <div class="node-config" id="nodeConfig">
+            <div class="config-field">
+              <label class="config-label">Name</label>
+              <input
+                type="text"
+                class="config-input"
+                id="nodeName"
+                placeholder="Enter node name"
+              />
+            </div>
+
+            <div class="config-field">
+              <label class="config-label">Type</label>
+              <select class="config-select" id="nodeType">
+                  <option value="">Select node type</option>
+                  <!-- Dynamically populated -->
+              </select>
+              <input type="text" class="config-input" id="nodeTypeCustom" placeholder="Enter custom type" style="display: none;">
+            </div>
+
+            <!-- Parent Node Select -->
+            <div class="config-field">
+              <label class="config-label">Parent Node</label>
+              <div class="parent-node-row">
+                <div id="parentNodeContainer">
+                  <div class="parent-node-select-row">
+                    <select class="config-select parent-node-select">
+                      <option value="">Select parent node</option>
+                      <!-- Dynamically populated -->
                     </select>
-                    <input type="text" class="map-rename-input" id="mapRenameInput" style="display: none;" onkeydown="handleMapRenameKeydown(event)" onblur="cancelMapRename()">
+                  </div>
+                  <!-- Additional parent selects will be added here dynamically -->
                 </div>
-                <div class="map-actions">
-                    <button class="map-action-btn" onclick="createNewMap()">Create</button>
-                    <button class="map-action-btn" onclick="uploadMap()">Upload</button>
-                    <button class="map-action-btn" onclick="deleteCurrentMap()">Delete</button>
-                </div>
-                <input type="file" id="mapFileInput" accept=".json" style="display: none;" onchange="handleMapFileUpload(event)">
+                <button
+                  class="add-parent-btn add-attribute-btn"
+                  type="button"
+                  onclick="addParentNodeSelect()"
+                >
+                  +
+                </button>
+              </div>
             </div>
-            
-            <div class="panel-header">
-                <div class="panel-title">Tools</div>
-                <button class="collapse-btn" onclick="togglePanel()">‹</button>
+
+            <!-- Node Description -->
+            <div class="config-field">
+              <label class="config-label">Description</label>
+              <textarea
+                class="config-textarea"
+                id="nodeDescription"
+                placeholder="Enter node description"
+                rows="3"
+              ></textarea>
             </div>
-            
-            <div class="panel-content">
-                <div class="tool-section">
-                    <div class="tool-item" onclick="selectTool('node', event)">
-                        <div class="tool-icon"></div>
-                        <div class="tool-text">Add Node</div>
-                    </div>
-                    <div class="tool-item" onclick="selectTool('edit', event)">
-                        <div class="tool-icon"></div>
-                        <div class="tool-text">Edit Node</div>
-                    </div>
+
+            <!-- Custom Attributes Section -->
+            <div class="custom-attributes">
+              <div class="attributes-header">
+                <span class="attributes-title">Custom Attributes</span>
+              </div>
+              <div id="attributesList">
+                <!-- Dynamic attributes will be added here -->
+              </div>
+              <button class="add-attribute-btn" onclick="addAttribute()">
+                +
+              </button>
+            </div>
+
+            <!-- Save Button -->
+            <button class="save-node-btn" onclick="saveNode()">
+              Save Node
+            </button>
+          </div>
+
+          <!-- Edit Node Configuration Section -->
+          <div class="edit-node-config" id="editNodeConfig">
+            <div class="config-field">
+              <label class="config-label">Select Node</label>
+              <select
+                class="config-select"
+                id="editNodeSelect"
+                onchange="populateEditNodeForm()"
+              >
+                <option value="">Select node</option>
+                <!-- Dynamically populated -->
+              </select>
+            </div>
+
+            <!-- Edit form - only shown when a node is selected -->
+            <div id="editNodeForm" style="display: none">
+              <div class="config-field">
+                <label class="config-label">Name</label>
+                <input
+                  type="text"
+                  class="config-input"
+                  id="editNodeName"
+                  placeholder="Enter node name"
+                />
+              </div>
+
+              <div class="config-field">
+                <label class="config-label">Type</label>
+                <select class="config-select" id="editNodeType">
+                    <option value="">Select node type</option>
+                    <!-- Dynamically populated -->
+                </select>
+                <input type="text" class="config-input" id="editNodeTypeCustom" placeholder="Enter custom type" style="display: none;">
+              </div>
+
+              <!-- Parent Node Select for Edit -->
+              <div class="config-field">
+                <label class="config-label">Parent Nodes</label>
+                <div class="parent-node-row">
+                  <div id="editParentNodeContainer">
+                    <!-- Will be populated dynamically -->
+                  </div>
+                  <button
+                    class="add-parent-btn add-attribute-btn"
+                    type="button"
+                    onclick="addEditParentNodeSelect()"
+                  >
+                    +
+                  </button>
                 </div>
-                
-                <!-- Add Node Configuration Section -->
-                <div class="node-config" id="nodeConfig">
-                    <div class="config-field">
-                        <label class="config-label">Name</label>
-                        <input type="text" class="config-input" id="nodeName" placeholder="Enter node name">
-                    </div>
-                    
-                    <div class="config-field">
-                        <label class="config-label">Type</label>
-                        <input type="text" class="config-input" id="nodeType" list="nodeTypeOptions" placeholder="Select or enter type">
-                        <datalist id="nodeTypeOptions">
-                            <option value="API">
-                                <option value="Cache">
-                                    <option value="Database">
-                                        <option value="External">
-                                            <option value="Hardware">
-                                                <option value="Monitor">
-                                                    <option value="OS">
-                                                        <option value="Security">
-                                                            <option value="Service">
-                                                                <option value="Software">
-                                                                    <option value="Storage">
-                                                                    </datalist>
-                                                                </div>
-                                                                
-                                                                <!-- Parent Node Select -->
-                                                                <div class="config-field">
-                                                                    <label class="config-label">Parent Node</label>
-                                                                    <div class="parent-node-row">
-                                                                        <div id="parentNodeContainer">
-                                                                            <div class="parent-node-select-row">
-                                                                                <select class="config-select parent-node-select">
-                                                                                    <option value="">Select parent node</option>
-                                                                                    <!-- Dynamically populated -->
-                                                                                </select>
-                                                                            </div>
-                                                                            <!-- Additional parent selects will be added here dynamically -->
-                                                                        </div>
-                                                                        <button class="add-parent-btn add-attribute-btn" type="button" onclick="addParentNodeSelect()">+</button>
-                                                                    </div>
-                                                                </div>
-                                                                
-                                                                <!-- Node Description -->
-                                                                <div class="config-field">
-                                                                    <label class="config-label">Description</label>
-                                                                    <textarea class="config-textarea" id="nodeDescription" placeholder="Enter node description" rows="3"></textarea>
-                                                                </div>
-                                                                
-                                                                <!-- Custom Attributes Section -->
-                                                                <div class="custom-attributes">
-                                                                    <div class="attributes-header">
-                                                                        <span class="attributes-title">Custom Attributes</span>
-                                                                    </div>
-                                                                    <div id="attributesList">
-                                                                        <!-- Dynamic attributes will be added here -->
-                                                                    </div>
-                                                                    <button class="add-attribute-btn" onclick="addAttribute()">+</button>
-                                                                </div>
-                                                                
-                                                                <!-- Save Button -->
-                                                                <button class="save-node-btn" onclick="saveNode()">Save Node</button>
-                                                            </div>
-                                                            
-                                                            <!-- Edit Node Configuration Section -->
-                                                            <div class="edit-node-config" id="editNodeConfig">
-                                                                <div class="config-field">
-                                                                    <label class="config-label">Select Node</label>
-                                                                    <select class="config-select" id="editNodeSelect" onchange="populateEditNodeForm()">
-                                                                        <option value="">Select node</option>
-                                                                        <!-- Dynamically populated -->
-                                                                    </select>
-                                                                </div>
-                                                                
-                                                                <!-- Edit form - only shown when a node is selected -->
-                                                                <div id="editNodeForm" style="display: none;">
-                                                                    <div class="config-field">
-                                                                        <label class="config-label">Name</label>
-                                                                        <input type="text" class="config-input" id="editNodeName" placeholder="Enter node name">
-                                                                    </div>
-                                                                    
-                                                                    <div class="config-field">
-                                                                        <label class="config-label">Type</label>
-                                                                        <input type="text" class="config-input" id="editNodeType" list="editNodeTypeOptions" placeholder="Select or enter type">
-                                                                        <datalist id="editNodeTypeOptions">
-                                                                            <option value="API">
-                                                                                <option value="Cache">
-                                                                                    <option value="Database">
-                                                                                        <option value="External">
-                                                                                            <option value="Hardware">
-                                                                                                <option value="Monitor">
-                                                                                                    <option value="OS">
-                                                                                                        <option value="Security">
-                                                                                                            <option value="Service">
-                                                                                                                <option value="Software">
-                                                                                                                    <option value="Storage">
-                                                                                                                    </datalist>
-                                                                                                                </div>
-                                                                                                                
-                                                                                                                <!-- Parent Node Select for Edit -->
-                                                                                                                <div class="config-field">
-                                                                                                                    <label class="config-label">Parent Nodes</label>
-                                                                                                                    <div class="parent-node-row">
-                                                                                                                        <div id="editParentNodeContainer">
-                                                                                                                            <!-- Will be populated dynamically -->
-                                                                                                                        </div>
-                                                                                                                        <button class="add-parent-btn add-attribute-btn" type="button" onclick="addEditParentNodeSelect()">+</button>
-                                                                                                                    </div>
-                                                                                                                </div>
-                                                                                                                
-                                                                                                                <!-- Node Description for Edit -->
-                                                                                                                <div class="config-field">
-                                                                                                                    <label class="config-label">Description</label>
-                                                                                                                    <textarea class="config-textarea" id="editNodeDescription" placeholder="Enter node description" rows="3"></textarea>
-                                                                                                                </div>
-                                                                                                                
-                                                                                                                <!-- Custom Attributes Section for Edit -->
-                                                                                                                <div class="custom-attributes">
-                                                                                                                    <div class="attributes-header">
-                                                                                                                        <span class="attributes-title">Custom Attributes</span>
-                                                                                                                    </div>
-                                                                                                                    <div id="editAttributesList">
-                                                                                                                        <!-- Editable attributes will appear here -->
-                                                                                                                    </div>
-                                                                                                                    <button class="add-attribute-btn" onclick="addEditAttribute()">+</button>
-                                                                                                                </div>
-                                                                                                                
-                                                                                                                <button class="save-node-btn" onclick="saveEditedNode()">Save Changes</button>
-                                                                                                                <button class="save-node-btn" onclick="deleteSelectedNode()" style="background: #dc3545; margin-top: 10px;">Delete Node</button>
-                                                                                                            </div>
-                                                                                                        </div>
-                                                                                                    </div>
-                                                                                                </div>
-                                                                                                
-                                                                                                <!-- Canvas Area -->
-                                                                                                <div class="canvas-area">
-                                                                                                    <!-- D3 Graph Visualization -->
-                                                                                                    <div id="graph" class="d3-graph"></div>
-                                                                                                    <svg></svg>
-                                                                                                    <div class="tooltip" style="opacity:0"></div>
-                                                                                                    <div class="node-tooltip" id="nodeTooltip"></div>
-                                                                                                    <div class="canvas-grid"></div>
-                                                                                                </div>
-                                                                                            </div>
-                                                                                            
-                                                                                            <!-- Node Details Modal -->
-                                                                                            <div class="modal-overlay" id="nodeModal" onclick="closeNodeModal(event)">
-                                                                                                <div class="modal" onclick="event.stopPropagation()">
-                                                                                                    <div class="modal-header">
-                                                                                                        <h3 class="modal-title" id="modalTitle">Node Details</h3>
-                                                                                                        <button class="modal-close" onclick="closeNodeModal()">&times;</button>
-                                                                                                    </div>
-                                                                                                    <div class="modal-content" id="modalContent">
-                                                                                                        <!-- Content will be populated dynamically -->
-                                                                                                    </div>
-                                                                                                </div>
-                                                                                            </div>
-                                                                                            
-                                                                                            <!-- Scripts - Load in correct order -->
-                                                                                            <script src="https://d3js.org/d3.v7.min.js"></script>
-                                                                                            <script src="js/visualization.js"></script>
-                                                                                            <script src="js/ui.js"></script>
-                                                                                            <script src="js/api.js"></script>
-                                                                                            <script src="js/main.js"></script>
-                                                                                        </body>
-                                                                                        </html>
+              </div>
+
+              <!-- Node Description for Edit -->
+              <div class="config-field">
+                <label class="config-label">Description</label>
+                <textarea
+                  class="config-textarea"
+                  id="editNodeDescription"
+                  placeholder="Enter node description"
+                  rows="3"
+                ></textarea>
+              </div>
+
+              <!-- Custom Attributes Section for Edit -->
+              <div class="custom-attributes">
+                <div class="attributes-header">
+                  <span class="attributes-title">Custom Attributes</span>
+                </div>
+                <div id="editAttributesList">
+                  <!-- Editable attributes will appear here -->
+                </div>
+                <button class="add-attribute-btn" onclick="addEditAttribute()">
+                  +
+                </button>
+              </div>
+
+              <button class="save-node-btn" onclick="saveEditedNode()">
+                Save Changes
+              </button>
+              <button
+                class="save-node-btn"
+                onclick="deleteSelectedNode()"
+                style="background: #dc3545; margin-top: 10px"
+              >
+                Delete Node
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Canvas Area -->
+      <div class="canvas-area">
+        <!-- D3 Graph Visualization -->
+        <div id="graph" class="d3-graph"></div>
+        <svg></svg>
+        <div class="tooltip" style="opacity: 0"></div>
+        <div class="node-tooltip" id="nodeTooltip"></div>
+        <div class="canvas-grid"></div>
+      </div>
+    </div>
+
+    <!-- Node Details Modal -->
+    <div class="modal-overlay" id="nodeModal" onclick="closeNodeModal(event)">
+      <div class="modal" onclick="event.stopPropagation()">
+        <div class="modal-header">
+          <h3 class="modal-title" id="modalTitle">Node Details</h3>
+          <button class="modal-close" onclick="closeNodeModal()">
+            &times;
+          </button>
+        </div>
+        <div class="modal-content" id="modalContent">
+          <!-- Content will be populated dynamically -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Scripts - Load in correct order -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="js/visualization.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/main.js"></script>
+  </body>
+</html>

@@ -75,6 +75,7 @@ function updateParentNodeOptions() {
             });
         }
     });
+    updateNodeTypeOptions();
 }
 
 function updateEditNodeOptions() {
@@ -114,7 +115,24 @@ async function populateEditNodeForm() {
 
     // Populate basic fields
     document.getElementById('editNodeName').value = node.id;
-    document.getElementById('editNodeType').value = node.group || '';
+    const editTypeSelect = document.getElementById('editNodeType');
+    const editTypeCustom = document.getElementById('editNodeTypeCustom');
+    const nodeType = node.group || '';
+
+    updateNodeTypeOptions(); // Ensure options are current
+
+    if (getExistingNodeTypes().includes(nodeType)) {
+        editTypeSelect.value = nodeType;
+        editTypeCustom.style.display = 'none';
+    } else if (nodeType) {
+        // Custom type not in dropdown
+        editTypeSelect.value = '__custom__';
+        editTypeCustom.style.display = 'block';
+        editTypeCustom.value = nodeType;
+    } else {
+        editTypeSelect.value = '';
+        editTypeCustom.style.display = 'none';
+    }
     document.getElementById('editNodeDescription').value = node.description || '';
 
     // Clear and populate parent nodes
@@ -920,3 +938,67 @@ function cancelMapRename() {
 window.handleMapRenameKeydown = handleMapRenameKeydown;
 window.cancelMapRename = cancelMapRename;
 window.handleMapRenameClick = handleMapRenameClick;  // Add this line
+
+// Get unique node types from current map, sorted alphabetically
+function getExistingNodeTypes() {
+    if (!window.currentMapData || !window.currentMapData.nodes) {
+        return [];
+    }
+    
+    const types = new Set();
+    window.currentMapData.nodes.forEach(node => {
+        if (node.group && node.group.trim()) {
+            types.add(node.group.trim());
+        }
+    });
+    
+    return Array.from(types).sort();
+}
+
+// Populate node type dropdown
+function updateNodeTypeOptions() {
+    const addSelect = document.getElementById('nodeType');
+    const editSelect = document.getElementById('editNodeType');
+    const existingTypes = getExistingNodeTypes();
+    
+    [addSelect, editSelect].forEach(select => {
+        if (!select) return;
+        
+        const currentValue = select.value;
+        select.innerHTML = '<option value="">Select node type</option>';
+        
+        // Add existing types
+        existingTypes.forEach(type => {
+            const option = document.createElement('option');
+            option.value = type;
+            option.textContent = type;
+            select.appendChild(option);
+        });
+        
+        // Add "Add new type..." option
+        const customOption = document.createElement('option');
+        customOption.value = '__custom__';
+        customOption.textContent = '+ Add new type...';
+        customOption.style.fontStyle = 'italic';
+        select.appendChild(customOption);
+        
+        // Restore selection if it was valid
+        if (currentValue && existingTypes.includes(currentValue)) {
+            select.value = currentValue;
+        }
+    });
+}
+
+// Handle node type selection change
+function handleNodeTypeChange(selectElement, customInputId) {
+    const customInput = document.getElementById(customInputId);
+    
+    if (selectElement.value === '__custom__') {
+        customInput.style.display = 'block';
+        customInput.focus();
+        selectElement.value = ''; // Clear the select
+    } else {
+        customInput.style.display = 'none';
+        customInput.value = '';
+    }
+}

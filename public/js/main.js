@@ -27,6 +27,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.error('❌ Failed to initialize System Mapper:', error);
         showMessage('Failed to initialize application', 'error');
     }
+
+    document.getElementById('nodeType').addEventListener('change', function() {
+    handleNodeTypeChange(this, 'nodeTypeCustom');
+    });
+
+    document.getElementById('editNodeType').addEventListener('change', function() {
+        handleNodeTypeChange(this, 'editNodeTypeCustom');
+    });
 });
 
 

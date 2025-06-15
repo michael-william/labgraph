@@ -13,13 +13,34 @@ function initVisualization() {
     const width = window.innerWidth;
     const height = window.innerHeight;
     
+    // Get user customization settings
+    const settings = window.visualizationSettings || {
+        nodeColors: {},
+        nodeBorderWidth: 2,
+        nodeBorderColor: '#ffffff',
+        nodeSizeMultiplier: 1.0,
+        linkColor: '#667eea',
+        linkWidth: 2,
+        linkOpacity: 0.6,
+        enableNodeGlow: true,
+        enableLinkGlow: true,
+        enableParticles: true
+    };
+
     // Enhanced color scheme - more modern and vibrant
-    const colorScale = d3.scaleOrdinal([
+    const defaultColors = [
         '#667eea', '#764ba2', '#f093fb', '#f5576c', 
         '#4facfe', '#00f2fe', '#43e97b', '#38f9d7',
         '#ffecd2', '#fcb69f', '#a8edea', '#fed6e3',
         '#ff9a9e', '#fecfef', '#ffeaa7', '#fab1a0'
-    ]);
+    ];
+    
+    const colorScale = d3.scaleOrdinal(defaultColors);
+    
+    // Custom color function that respects user preferences
+    const getNodeColor = (nodeGroup) => {
+        return settings.nodeColors[nodeGroup] || colorScale(nodeGroup);
+    };
     
     const nodeTooltip = d3.select("#nodeTooltip");
 
@@ -30,52 +51,55 @@ function initVisualization() {
     // Add filter definitions for glow effects
     const defs = svg.append("defs");
     
-    // Glow filter for nodes
-    const nodeGlow = defs.append("filter")
-        .attr("id", "nodeGlow")
-        .attr("x", "-50%")
-        .attr("y", "-50%")
-        .attr("width", "200%")
-        .attr("height", "200%");
-    
-    nodeGlow.append("feGaussianBlur")
-        .attr("stdDeviation", "3")
-        .attr("result", "coloredBlur");
-    
-    const nodeMerge = nodeGlow.append("feMerge");
-    nodeMerge.append("feMergeNode").attr("in", "coloredBlur");
-    nodeMerge.append("feMergeNode").attr("in", "SourceGraphic");
+    // Conditionally add glow filters based on user preferences
+    if (settings.enableNodeGlow) {
+        const nodeGlow = defs.append("filter")
+            .attr("id", "nodeGlow")
+            .attr("x", "-50%")
+            .attr("y", "-50%")
+            .attr("width", "200%")
+            .attr("height", "200%");
+        
+        nodeGlow.append("feGaussianBlur")
+            .attr("stdDeviation", "3")
+            .attr("result", "coloredBlur");
+        
+        const nodeMerge = nodeGlow.append("feMerge");
+        nodeMerge.append("feMergeNode").attr("in", "coloredBlur");
+        nodeMerge.append("feMergeNode").attr("in", "SourceGraphic");
+    }
 
-    // Glow filter for links
-    const linkGlow = defs.append("filter")
-        .attr("id", "linkGlow")
-        .attr("x", "-50%")
-        .attr("y", "-50%")
-        .attr("width", "200%")
-        .attr("height", "200%");
-    
-    linkGlow.append("feGaussianBlur")
-        .attr("stdDeviation", "2")
-        .attr("result", "coloredBlur");
-    
-    const linkMerge = linkGlow.append("feMerge");
-    linkMerge.append("feMergeNode").attr("in", "coloredBlur");
-    linkMerge.append("feMergeNode").attr("in", "SourceGraphic");
+    if (settings.enableLinkGlow) {
+        const linkGlow = defs.append("filter")
+            .attr("id", "linkGlow")
+            .attr("x", "-50%")
+            .attr("y", "-50%")
+            .attr("width", "200%")
+            .attr("height", "200%");
+        
+        linkGlow.append("feGaussianBlur")
+            .attr("stdDeviation", "2")
+            .attr("result", "coloredBlur");
+        
+        const linkMerge = linkGlow.append("feMerge");
+        linkMerge.append("feMergeNode").attr("in", "coloredBlur");
+        linkMerge.append("feMergeNode").attr("in", "SourceGraphic");
+    }
 
-    // Add gradient definitions for links
+    // Add gradient definitions for links using user colors
     const linkGradient = defs.append("linearGradient")
         .attr("id", "linkGradient")
         .attr("gradientUnits", "userSpaceOnUse");
     
     linkGradient.append("stop")
         .attr("offset", "0%")
-        .attr("stop-color", "#667eea")
-        .attr("stop-opacity", 0.8);
+        .attr("stop-color", settings.linkColor)
+        .attr("stop-opacity", settings.linkOpacity);
     
     linkGradient.append("stop")
         .attr("offset", "100%")
-        .attr("stop-color", "#764ba2")
-        .attr("stop-opacity", 0.4);
+        .attr("stop-color", d3.color(settings.linkColor).darker(0.5))
+        .attr("stop-opacity", settings.linkOpacity * 0.5);
 
     const container = svg.append("g");
 
@@ -88,39 +112,14 @@ function initVisualization() {
     
     svg.call(zoom);
 
-    // Enhanced simulation with better forces
-    simulation = d3.forceSimulation(window.currentMapData.nodes)
-        .force("link", d3.forceLink(window.currentMapData.links)
-            .id(d => d.id)
-            .distance(d => {
-                // Dynamic link distance based on node types
-                const sourceNode = window.currentMapData.nodes.find(n => n.id === d.source.id || n.id === d.source);
-                const targetNode = window.currentMapData.nodes.find(n => n.id === d.target.id || n.id === d.target);
-                
-                if (sourceNode?.group === 'Hardware' && targetNode?.group === 'Hardware') {
-                    return 150; // Hardware components closer together
-                }
-                return 120;
-            })
-            .strength(0.8))
-        .force("charge", d3.forceManyBody()
-            .strength(d => {
-                // Stronger repulsion for nodes with more connections
-                const connections = window.currentMapData.links.filter(l => 
-                    l.source === d.id || l.target === d.id || 
-                    l.source.id === d.id || l.target.id === d.id
-                ).length;
-                return -300 - (connections * 50);
-            }))
-        .force("center", d3.forceCenter(width / 2, height / 2))
-        .force("collision", d3.forceCollide().radius(d => {
-            // Dynamic collision radius based on node importance
-            const connections = window.currentMapData.links.filter(l => 
-                l.source === d.id || l.target === d.id ||
-                l.source.id === d.id || l.target.id === d.id
-            ).length;
-            return 25 + (connections * 3);
-        }));
+    // Initialize layout based on user settings
+    initializeLayout(width, height, settings.layoutType);
+
+    // Add smooth transition when layouts change
+    if (window.previousLayout && window.previousLayout !== settings.layoutType) {
+        addLayoutTransitions();
+    }
+    window.previousLayout = settings.layoutType;
 
     // Enhanced links with gradients and animations
     const link = container.append("g")
@@ -128,36 +127,38 @@ function initVisualization() {
         .selectAll("line")
         .data(window.currentMapData.links)
         .join("line")
-        .attr("stroke", "url(#linkGradient)")
+        .attr("stroke", settings.linkColor)
         .attr("stroke-width", d => {
-            // Dynamic width based on connection importance
+            // Use user-defined width with dynamic adjustment for importance
+            const baseWidth = settings.linkWidth;
             const sourceNode = window.currentMapData.nodes.find(n => n.id === (d.source.id || d.source));
             const targetNode = window.currentMapData.nodes.find(n => n.id === (d.target.id || d.target));
             
             if (sourceNode?.group === 'Hardware' || targetNode?.group === 'Hardware') {
-                return 3;
+                return baseWidth + 1;
             }
-            return 2;
+            return baseWidth;
         })
-        .attr("stroke-opacity", 0.6)
-        .attr("filter", "url(#linkGlow)")
+        .attr("stroke-opacity", settings.linkOpacity)
+        .attr("filter", settings.enableLinkGlow ? "url(#linkGlow)" : "none")
         .style("cursor", "pointer")
         .on("mouseover", function(event, d) {
             d3.select(this)
                 .transition()
                 .duration(200)
-                .attr("stroke-opacity", 1)
-                .attr("stroke-width", 4);
+                .attr("stroke-opacity", Math.min(1, settings.linkOpacity + 0.4))
+                .attr("stroke-width", settings.linkWidth + 2);
         })
         .on("mouseout", function(event, d) {
             d3.select(this)
                 .transition()
                 .duration(200)
-                .attr("stroke-opacity", 0.6)
+                .attr("stroke-opacity", settings.linkOpacity)
                 .attr("stroke-width", d => {
+                    const baseWidth = settings.linkWidth;
                     const sourceNode = window.currentMapData.nodes.find(n => n.id === (d.source.id || d.source));
                     const targetNode = window.currentMapData.nodes.find(n => n.id === (d.target.id || d.target));
-                    return (sourceNode?.group === 'Hardware' || targetNode?.group === 'Hardware') ? 3 : 2;
+                    return (sourceNode?.group === 'Hardware' || targetNode?.group === 'Hardware') ? baseWidth + 1 : baseWidth;
                 });
         });
 
@@ -168,7 +169,7 @@ function initVisualization() {
         .data(window.currentMapData.nodes)
         .join("circle")
         .attr("r", d => {
-            // Dynamic radius based on connections and importance
+            // Dynamic radius based on connections and importance, with user multiplier
             const connections = window.currentMapData.links.filter(l => 
                 l.source === d.id || l.target === d.id ||
                 l.source.id === d.id || l.target.id === d.id
@@ -182,16 +183,18 @@ function initVisualization() {
             if (d.id === 'Internet' || d.id.includes('Proxmox')) radius += 6;
             if (d.group === 'Hardware') radius += 3;
             
-            return Math.min(radius, 25); // Cap at 25px
+            // Apply user size multiplier
+            radius *= settings.nodeSizeMultiplier;
+            
+            return Math.min(radius, 40); // Cap at 40px to allow for larger multipliers
         })
         .attr("fill", d => {
-            // Enhanced color mapping
-            const baseColor = colorScale(d.group);
-            return `url(#nodeGradient-${d.group})` || baseColor;
+            // Use custom color or gradient
+            return `url(#nodeGradient-${d.group})` || getNodeColor(d.group);
         })
-        .attr("stroke", "#ffffff")
-        .attr("stroke-width", 2)
-        .attr("filter", "url(#nodeGlow)")
+        .attr("stroke", settings.nodeBorderColor)
+        .attr("stroke-width", settings.nodeBorderWidth)
+        .attr("filter", settings.enableNodeGlow ? "url(#nodeGlow)" : "none")
         .style("cursor", "pointer")
         .call(drag(simulation))
         .on("mouseover", function(event, d) {
@@ -203,7 +206,7 @@ function initVisualization() {
                     const currentRadius = d3.select(this).attr("r");
                     return parseFloat(currentRadius) * 1.2;
                 })
-                .attr("stroke-width", 4);
+                .attr("stroke-width", settings.nodeBorderWidth + 2);
             
             // Show enhanced tooltip near mouse cursor
             const tooltip = document.getElementById('nodeTooltip');
@@ -250,9 +253,9 @@ function initVisualization() {
                     let radius = 12 + connections * 2;
                     if (d.id === 'Internet' || d.id.includes('Proxmox')) radius += 6;
                     if (d.group === 'Hardware') radius += 3;
-                    return Math.min(radius, 25);
+                    return Math.min(radius * settings.nodeSizeMultiplier, 40);
                 })
-                .attr("stroke-width", 2);
+                .attr("stroke-width", settings.nodeBorderWidth);
             
             nodeTooltip.style("opacity", 0);
         })
@@ -270,7 +273,7 @@ function initVisualization() {
             .attr("cx", "30%")
             .attr("cy", "30%");
         
-        const baseColor = colorScale(type);
+        const baseColor = getNodeColor(type);
         gradient.append("stop")
             .attr("offset", "0%")
             .attr("stop-color", d3.color(baseColor).brighter(0.8));
@@ -332,28 +335,30 @@ function initVisualization() {
     });
 
     // Add floating particles for ambient effect (optional)
-    const particles = container.append("g")
-        .attr("class", "particles")
-        .selectAll("circle")
-        .data(d3.range(20))
-        .join("circle")
-        .attr("r", Math.random() * 2 + 1)
-        .attr("fill", "#667eea")
-        .attr("opacity", 0.3)
-        .attr("cx", () => Math.random() * width)
-        .attr("cy", () => Math.random() * height);
-
-    // Animate particles
-    function animateParticles() {
-        particles
-            .transition()
-            .duration(20000)
-            .ease(d3.easeLinear)
+    if (settings.enableParticles) {
+        const particles = container.append("g")
+            .attr("class", "particles")
+            .selectAll("circle")
+            .data(d3.range(20))
+            .join("circle")
+            .attr("r", Math.random() * 2 + 1)
+            .attr("fill", settings.linkColor)
+            .attr("opacity", 0.3)
             .attr("cx", () => Math.random() * width)
-            .attr("cy", () => Math.random() * height)
-            .on("end", animateParticles);
+            .attr("cy", () => Math.random() * height);
+
+        // Animate particles
+        function animateParticles() {
+            particles
+                .transition()
+                .duration(20000)
+                .ease(d3.easeLinear)
+                .attr("cx", () => Math.random() * width)
+                .attr("cy", () => Math.random() * height)
+                .on("end", animateParticles);
+        }
+        animateParticles();
     }
-    animateParticles();
 }
 
 // Enhanced drag behavior
@@ -1013,3 +1018,247 @@ window.refreshNodeModal = refreshNodeModal;
 // Global functions for HTML access
 window.closeNodeModal = closeNodeModal;
 window.openNodeModalById = openNodeModalById;
+
+// Layout Functions
+function initializeLayout(width, height, layoutType) {
+    switch (layoutType) {
+        case 'force':
+            setupForceDirectedLayout(width, height);
+            break;
+        case 'circular':
+            setupCircularLayout(width, height);
+            break;
+        default:
+            setupForceDirectedLayout(width, height);
+    }
+}
+
+function setupForceDirectedLayout(width, height) {
+    // CRITICAL: Clear fixed positions set by other layouts
+    window.currentMapData.nodes.forEach(node => {
+        node.fx = null;
+        node.fy = null;
+    });
+    
+    // Enhanced simulation with better forces (original layout)
+    simulation = d3.forceSimulation(window.currentMapData.nodes)
+        .force("link", d3.forceLink(window.currentMapData.links)
+            .id(d => d.id)
+            .distance(d => {
+                // Dynamic link distance based on node types
+                const sourceNode = window.currentMapData.nodes.find(n => n.id === d.source.id || n.id === d.source);
+                const targetNode = window.currentMapData.nodes.find(n => n.id === d.target.id || n.id === d.target);
+                
+                if (sourceNode?.group === 'Hardware' && targetNode?.group === 'Hardware') {
+                    return 150; // Hardware components closer together
+                }
+                return 120;
+            })
+            .strength(0.8))
+        .force("charge", d3.forceManyBody()
+            .strength(d => {
+                // Stronger repulsion for nodes with more connections
+                const connections = window.currentMapData.links.filter(l => 
+                    l.source === d.id || l.target === d.id || 
+                    l.source.id === d.id || l.target.id === d.id
+                ).length;
+                return -300 - (connections * 50);
+            }))
+        .force("center", d3.forceCenter(width / 2, height / 2))
+        .force("collision", d3.forceCollide().radius(d => {
+            // Dynamic collision radius based on node importance
+            const connections = window.currentMapData.links.filter(l => 
+                l.source === d.id || l.target === d.id ||
+                l.source.id === d.id || l.target.id === d.id
+            ).length;
+            return 25 + (connections * 3);
+        }));
+}
+
+function setupHierarchicalTreeLayout(width, height) {
+    try {
+        // Find all root nodes (nodes with no incoming links)
+        const rootNodes = window.currentMapData.nodes.filter(node => 
+            !window.currentMapData.links.some(link => link.target === node.id)
+        );
+        
+        if (rootNodes.length === 0) {
+            console.warn('No root nodes found, falling back to force layout');
+            setupForceDirectedLayout(width, height);
+            return;
+        }
+        
+        if (rootNodes.length > 1) {
+            console.warn('Multiple root nodes found, using first root for hierarchy');
+        }
+        
+        // Use the first root node as the primary root
+        const primaryRoot = rootNodes[0];
+        
+        // Create a modified dataset for stratify
+        const nodesForHierarchy = window.currentMapData.nodes.map(node => ({
+            ...node,
+            parentId: (() => {
+                // Find parent from links
+                const parentLink = window.currentMapData.links.find(l => l.target === node.id);
+                if (parentLink) {
+                    return parentLink.source;
+                } else if (node.id !== primaryRoot.id) {
+                    // If no parent and not the primary root, attach to primary root
+                    return primaryRoot.id;
+                }
+                return null;
+            })()
+        }));
+        
+        const hierarchy = d3.stratify()
+            .id(d => d.id)
+            .parentId(d => d.parentId)(nodesForHierarchy);
+
+        const treeLayout = d3.tree()
+            .size([width - 100, height - 100]);
+
+        const root = treeLayout(hierarchy);
+
+        // Set positions based on tree layout
+        window.currentMapData.nodes.forEach(node => {
+            const treeNode = root.descendants().find(d => d.id === node.id);
+            if (treeNode) {
+                node.fx = treeNode.x + 50;
+                node.fy = treeNode.y + 50;
+            }
+        });
+
+        // Create a simple simulation for smooth positioning
+        simulation = d3.forceSimulation(window.currentMapData.nodes)
+            .force("link", d3.forceLink(window.currentMapData.links).id(d => d.id).strength(0.1))
+            .alphaDecay(0.1);
+    } catch (error) {
+        console.warn('Could not create hierarchical tree layout, falling back to force layout:', error);
+        setupForceDirectedLayout(width, height);
+    }
+}
+
+function setupCircularLayout(width, height) {
+    const nodes = window.currentMapData.nodes;
+    const centerX = width / 2;
+    const centerY = height / 2;
+    const radius = Math.min(width, height) / 3;
+
+    // Position nodes in a circle
+    nodes.forEach((node, i) => {
+        const angle = (i / nodes.length) * 2 * Math.PI;
+        node.fx = centerX + radius * Math.cos(angle);
+        node.fy = centerY + radius * Math.sin(angle);
+    });
+
+    // Create minimal simulation for link positioning
+    simulation = d3.forceSimulation(window.currentMapData.nodes)
+        .force("link", d3.forceLink(window.currentMapData.links).id(d => d.id).strength(0.1))
+        .alphaDecay(0.3);
+}
+
+function setupGridLayout(width, height) {
+    const nodes = window.currentMapData.nodes;
+    const cols = Math.ceil(Math.sqrt(nodes.length));
+    const rows = Math.ceil(nodes.length / cols);
+    const cellWidth = (width - 100) / cols;
+    const cellHeight = (height - 100) / rows;
+
+    // Position nodes in a grid
+    nodes.forEach((node, i) => {
+        const col = i % cols;
+        const row = Math.floor(i / cols);
+        node.fx = 50 + col * cellWidth + cellWidth / 2;
+        node.fy = 50 + row * cellHeight + cellHeight / 2;
+    });
+
+    // Create minimal simulation
+    simulation = d3.forceSimulation(window.currentMapData.nodes)
+        .force("link", d3.forceLink(window.currentMapData.links).id(d => d.id).strength(0.1))
+        .alphaDecay(0.3);
+}
+
+function setupRadialTreeLayout(width, height) {
+    try {
+        // Find all root nodes (nodes with no incoming links)
+        const rootNodes = window.currentMapData.nodes.filter(node => 
+            !window.currentMapData.links.some(link => link.target === node.id)
+        );
+        
+        if (rootNodes.length === 0) {
+            console.warn('No root nodes found for radial tree, falling back to circular');
+            setupCircularLayout(width, height);
+            return;
+        }
+        
+        if (rootNodes.length > 1) {
+            console.warn('Multiple root nodes found for radial tree, using first root');
+        }
+        
+        // Use the first root node as the primary root
+        const primaryRoot = rootNodes[0];
+        
+        // Create a modified dataset for stratify
+        const nodesForHierarchy = window.currentMapData.nodes.map(node => ({
+            ...node,
+            parentId: (() => {
+                // Find parent from links
+                const parentLink = window.currentMapData.links.find(l => l.target === node.id);
+                if (parentLink) {
+                    return parentLink.source;
+                } else if (node.id !== primaryRoot.id) {
+                    // If no parent and not the primary root, attach to primary root
+                    return primaryRoot.id;
+                }
+                return null;
+            })()
+        }));
+        
+        const hierarchy = d3.stratify()
+            .id(d => d.id)
+            .parentId(d => d.parentId)(nodesForHierarchy);
+
+        const treeLayout = d3.tree()
+            .size([2 * Math.PI, Math.min(width, height) / 3])
+            .separation((a, b) => (a.parent == b.parent ? 1 : 2) / a.depth);
+
+        const root = treeLayout(hierarchy);
+
+        // Convert polar coordinates to cartesian
+        const centerX = width / 2;
+        const centerY = height / 2;
+
+        window.currentMapData.nodes.forEach(node => {
+            const treeNode = root.descendants().find(d => d.id === node.id);
+            if (treeNode) {
+                const angle = treeNode.x;
+                const radius = treeNode.y;
+                node.fx = centerX + radius * Math.cos(angle - Math.PI / 2);
+                node.fy = centerY + radius * Math.sin(angle - Math.PI / 2);
+            }
+        });
+
+        // Create minimal simulation
+        simulation = d3.forceSimulation(window.currentMapData.nodes)
+            .force("link", d3.forceLink(window.currentMapData.links).id(d => d.id).strength(0.1))
+            .alphaDecay(0.1);
+    } catch (error) {
+        console.warn('Could not create radial tree layout, falling back to circular:', error);
+        setupCircularLayout(width, height);
+    }
+}
+
+function addLayoutTransitions() {
+    // Add smooth animations when switching between layouts
+    if (simulation) {
+        simulation.alpha(0.8).restart();
+        
+        // Optional: Add a brief pause to let the animation be visible
+        setTimeout(() => {
+            if (simulation) {
+                simulation.alpha(0.3);
+            }
+        }, 1000);
+    }
+}

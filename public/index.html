@@ -95,6 +95,10 @@
               <div class="tool-icon"></div>
               <div class="tool-text">Edit Node</div>
             </div>
+            <div class="tool-item" onclick="selectTool('visualize', event)">
+              <div class="tool-icon"></div>
+              <div class="tool-text">Customize View</div>
+            </div>
           </div>
 
           <!-- Add Node Configuration Section -->
@@ -256,6 +260,104 @@
                 style="background: #dc3545; margin-top: 10px"
               >
                 Delete Node
+              </button>
+            </div>
+          </div>
+
+          <!-- Visualization Customization Section -->
+          <div class="visualization-config" id="visualizationConfig">
+            <div class="config-section">
+              <div class="config-section-title">Layout</div>
+              <div class="config-field">
+                <label class="config-label">Layout Type</label>
+                <select class="config-select" id="layoutType" onchange="updateVisualizationLayout()">
+                  <option value="force">Force-Directed</option>
+                  <option value="circular">Circular</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="config-section">
+              <div class="config-section-title">Node Colors</div>
+              <div id="nodeColorControls">
+                <!-- Node type color pickers will be populated dynamically -->
+              </div>
+            </div>
+
+            <div class="config-section">
+              <div class="config-section-title">Node Style</div>
+              <div class="config-field">
+                <label class="config-label">Border Width</label>
+                <input type="range" class="config-range" id="nodeBorderWidth" 
+                       min="0" max="8" value="2" step="0.5"
+                       oninput="updateVisualizationStyle()">
+                <span class="range-value" id="nodeBorderWidthValue">2px</span>
+              </div>
+              <div class="config-field">
+                <label class="config-label">Border Color</label>
+                <input type="color" class="config-color" id="nodeBorderColor" 
+                       value="#ffffff" onchange="updateVisualizationStyle()">
+              </div>
+              <div class="config-field">
+                <label class="config-label">Node Size Multiplier</label>
+                <input type="range" class="config-range" id="nodeSizeMultiplier" 
+                       min="0.5" max="2.0" value="1.0" step="0.1"
+                       oninput="updateVisualizationStyle()">
+                <span class="range-value" id="nodeSizeMultiplierValue">1.0x</span>
+              </div>
+            </div>
+
+            <div class="config-section">
+              <div class="config-section-title">Link Style</div>
+              <div class="config-field">
+                <label class="config-label">Link Color</label>
+                <input type="color" class="config-color" id="linkColor" 
+                       value="#667eea" onchange="updateVisualizationStyle()">
+              </div>
+              <div class="config-field">
+                <label class="config-label">Link Width</label>
+                <input type="range" class="config-range" id="linkWidth" 
+                       min="1" max="8" value="2" step="0.5"
+                       oninput="updateVisualizationStyle()">
+                <span class="range-value" id="linkWidthValue">2px</span>
+              </div>
+              <div class="config-field">
+                <label class="config-label">Link Opacity</label>
+                <input type="range" class="config-range" id="linkOpacity" 
+                       min="0.1" max="1.0" value="0.6" step="0.1"
+                       oninput="updateVisualizationStyle()">
+                <span class="range-value" id="linkOpacityValue">60%</span>
+              </div>
+            </div>
+
+            <div class="config-section">
+              <div class="config-section-title">Effects</div>
+              <div class="config-field">
+                <label class="config-label">
+                  <input type="checkbox" id="enableNodeGlow" checked onchange="updateVisualizationStyle()">
+                  Node Glow Effect
+                </label>
+              </div>
+              <div class="config-field">
+                <label class="config-label">
+                  <input type="checkbox" id="enableLinkGlow" checked onchange="updateVisualizationStyle()">
+                  Link Glow Effect
+                </label>
+              </div>
+              <div class="config-field">
+                <label class="config-label">
+                  <input type="checkbox" id="enableParticles" checked onchange="updateVisualizationStyle()">
+                  Background Particles
+                </label>
+              </div>
+            </div>
+
+            <div class="config-actions">
+              <button class="save-node-btn" onclick="resetVisualizationDefaults()">
+                Reset to Defaults
+              </button>
+              <button class="save-node-btn" onclick="saveVisualizationPreferences()" style="margin-top: 8px;">
+                Save Preferences
               </button>
             </div>
           </div>

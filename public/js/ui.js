@@ -337,9 +337,22 @@ function addEditAttribute(name = '', value = '') {
 
 function addParentNodeSelect() {
     const container = document.getElementById('parentNodeContainer');
-    const selects = container.querySelectorAll('.parent-node-select');
-    const newSelect = selects[0].cloneNode(true);
-    newSelect.selectedIndex = 0;
+    
+    // Create new select element with sorted options instead of cloning
+    const newSelect = document.createElement('select');
+    newSelect.className = 'config-select parent-node-select';
+    newSelect.innerHTML = '<option value="">Select parent node</option>';
+    
+    // Populate with sorted nodes
+    if (window.currentMapData && window.currentMapData.nodes) {
+        const nodesSorted = getNodesSortedById();
+        nodesSorted.forEach(node => {
+            const option = document.createElement('option');
+            option.value = node.id;
+            option.textContent = node.id;
+            newSelect.appendChild(option);
+        });
+    }
 
     const rowDiv = document.createElement('div');
     rowDiv.className = 'parent-node-select-row';

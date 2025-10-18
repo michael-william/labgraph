@@ -87,7 +87,8 @@ function updateParentNodeOptions() {
     parentNodeSelects.forEach(select => {
         select.innerHTML = '<option value="">Select parent node</option>';
         if (window.currentMapData && window.currentMapData.nodes) {
-            window.currentMapData.nodes.forEach(node => {
+            const nodesSorted = getNodesSortedById();
+            nodesSorted.forEach(node => {
                 const option = document.createElement('option');
                 option.value = node.id;
                 option.textContent = node.id;
@@ -212,7 +213,9 @@ function addEditParentNodeSelect(selectedParentId = '') {
         const editNodeSelect = document.getElementById('editNodeSelect');
         const currentEditId = editNodeSelect.value;
         console.log('🔍 currentEditId:', currentEditId);
-        console.log('🔍 Available nodes:', window.currentMapData.nodes.map(n => n.id));
+        
+        const nodesSorted = getNodesSortedById();
+        console.log('🔍 Available nodes:', nodesSorted.map(n => n.id));
         
         const nodesSorted = getNodesSortedById();
         let optionFound = false;

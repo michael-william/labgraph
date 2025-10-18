@@ -10,6 +10,14 @@ function showMessage(message, type = 'success') {
     }, 3000);
 }
 
+// Get nodes sorted alphabetically by id (case-insensitive)
+function getNodesSortedById() {
+    const nodes = window.currentMapData?.nodes || [];
+    return Array.from(nodes).sort((a, b) =>
+        String(a.id).localeCompare(String(b.id), undefined, { sensitivity: 'base' })
+    );
+}
+
 // Tool Functions
 function selectTool(tool, event = null) {
     // Remove active state from all items
@@ -95,7 +103,8 @@ function updateEditNodeOptions() {
     if (editNodeSelect) {
         editNodeSelect.innerHTML = '<option value="">Select node</option>';
         if (window.currentMapData && window.currentMapData.nodes) {
-            window.currentMapData.nodes.forEach(node => {
+            const nodesSorted = getNodesSortedById();
+            nodesSorted.forEach(node => {
                 const option = document.createElement('option');
                 option.value = node.id;
                 option.textContent = node.id;
@@ -205,8 +214,9 @@ function addEditParentNodeSelect(selectedParentId = '') {
         console.log('🔍 currentEditId:', currentEditId);
         console.log('🔍 Available nodes:', window.currentMapData.nodes.map(n => n.id));
         
+        const nodesSorted = getNodesSortedById();
         let optionFound = false;
-        window.currentMapData.nodes.forEach(node => {
+        nodesSorted.forEach(node => {
             if (node.id !== currentEditId) {
                 const option = document.createElement('option');
                 option.value = node.id;

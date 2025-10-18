@@ -216,8 +216,6 @@ function addEditParentNodeSelect(selectedParentId = '') {
         
         const nodesSorted = getNodesSortedById();
         console.log('🔍 Available nodes:', nodesSorted.map(n => n.id));
-        
-        const nodesSorted = getNodesSortedById();
         let optionFound = false;
         nodesSorted.forEach(node => {
             if (node.id !== currentEditId) {

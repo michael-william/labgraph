@@ -942,18 +942,29 @@ body.dark .control-btn {
     display: flex;
     flex-direction: column;
     gap: 8px;
+    width: 100%;
 }
 
-/* Each parent select row is full width and stacks in Edit Node */
+/* Each parent select row should stack its contents vertically too */
 .edit-node-config .parent-node-select-row {
-    display: block;
+    display: flex;
+    flex-direction: column;
     width: 100%;
-    margin-bottom: 8px; /* increased from 4px for better spacing */
+    gap: 4px;
+    margin-bottom: 8px;
 }
 
 /* Make the select itself span the available width */
-.edit-node-config .parent-node-select {
+.edit-node-config .edit-parent-node-select,
+.edit-node-config .config-select {
     width: 100%;
+    margin-bottom: 0;
+}
+
+/* Stack remove button below the select */
+.edit-node-config .remove-parent-btn {
+    align-self: flex-start;
+    margin-top: 4px;
 }
 
 /* Place the add (+) button under the list, left-aligned */
@@ -963,8 +974,13 @@ body.dark .control-btn {
 }
 
 /* Improved vertical rhythm and spacing for Edit Node form */
-/* More breathing room between fields in Edit form */
-.edit-node-config .config-field {
+/* Override config-field to stack vertically in both Add and Edit forms */
+.edit-node-config .config-field,
+.node-config .config-field {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
     margin-bottom: 20px; /* was 16px */
 }
 

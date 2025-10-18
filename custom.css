@@ -766,7 +766,7 @@ body.dark .control-btn {
 }
 
 /* Make the select itself span the available width */
-.edit-node-config .parent-node-select {
+.edit-node-config .edit-parent-node-select {
     width: 100%;
 }
 
@@ -777,8 +777,13 @@ body.dark .control-btn {
 }
 
 /* Improved vertical rhythm and spacing for Edit Node form */
-/* More breathing room between fields in Edit form */
-.edit-node-config .config-field {
+/* Override config-field to stack vertically in both Add and Edit forms */
+.edit-node-config .config-field,
+.node-config .config-field {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
     margin-bottom: 20px; /* was 16px */
 }
 

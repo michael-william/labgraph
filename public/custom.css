@@ -922,10 +922,65 @@ body.dark .control-btn {
     z-index: 10;
 }
 
+/* Original horizontal layout - preserved for Add Node */
 .parent-node-select-row {
     display: flex;
     align-items: center;
     margin-bottom: 4px;
+}
+
+/* Vertical layout for Edit Node parent selection */
+.edit-node-config .parent-node-row {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px; /* space between rows and the add button */
+}
+
+/* Ensure the container that holds multiple parent selects stacks vertically */
+#editParentNodeContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* Each parent select row is full width and stacks in Edit Node */
+.edit-node-config .parent-node-select-row {
+    display: block;
+    width: 100%;
+    margin-bottom: 8px; /* increased from 4px for better spacing */
+}
+
+/* Make the select itself span the available width */
+.edit-node-config .parent-node-select {
+    width: 100%;
+}
+
+/* Place the add (+) button under the list, left-aligned */
+.edit-node-config .parent-node-row .add-parent-btn {
+    align-self: flex-start;
+    margin-top: 4px;
+}
+
+/* Improved vertical rhythm and spacing for Edit Node form */
+/* More breathing room between fields in Edit form */
+.edit-node-config .config-field {
+    margin-bottom: 20px; /* was 16px */
+}
+
+.edit-node-config .config-label {
+    margin-bottom: 8px; /* slightly larger label spacing */
+}
+
+.edit-node-config .custom-attributes {
+    margin-top: 20px;
+    padding-top: 20px;
+    gap: 12px; /* consistent internal spacing */
+}
+
+/* Keep save button separated from preceding content */
+.edit-node-config .save-node-btn {
+    margin-top: 24px;
 }
 .status-message {
     position: fixed;

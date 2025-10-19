@@ -10,6 +10,14 @@ function showMessage(message, type = 'success') {
     }, 3000);
 }
 
+// Get nodes sorted alphabetically by id (case-insensitive)
+function getNodesSortedById() {
+    const nodes = window.currentMapData?.nodes || [];
+    return Array.from(nodes).sort((a, b) =>
+        String(a.id).localeCompare(String(b.id), undefined, { sensitivity: 'base' })
+    );
+}
+
 // Tool Functions
 function selectTool(tool, event = null) {
     // Remove active state from all items
@@ -20,6 +28,12 @@ function selectTool(tool, event = null) {
 
     const nodeConfig = document.getElementById('nodeConfig');
     const editNodeConfig = document.getElementById('editNodeConfig');
+    const visualizationConfig = document.getElementById('visualizationConfig');
+
+    // Hide all panels first
+    nodeConfig.classList.remove('active');
+    editNodeConfig.classList.remove('active');
+    visualizationConfig.classList.remove('active');
 
     // Toggle panels based on tool
     if (tool === 'node') {
@@ -28,7 +42,6 @@ function selectTool(tool, event = null) {
             return;
         }
         nodeConfig.classList.add('active');
-        editNodeConfig.classList.remove('active');
         updateParentNodeOptions();
     } else if (tool === 'edit') {
         if (editNodeConfig.classList.contains('active')) {
@@ -36,8 +49,14 @@ function selectTool(tool, event = null) {
             return;
         }
         editNodeConfig.classList.add('active');
-        nodeConfig.classList.remove('active');
         updateEditNodeOptions();
+    } else if (tool === 'visualize') {
+        if (visualizationConfig.classList.contains('active')) {
+            visualizationConfig.classList.remove('active');
+            return;
+        }
+        visualizationConfig.classList.add('active');
+        initializeVisualizationControls();
     }
     
     // Highlight the clicked tool if event is available
@@ -54,7 +73,8 @@ function selectTool(tool, event = null) {
             const toolText = item.querySelector('.tool-text');
             if (toolText && 
                 ((tool === 'edit' && toolText.textContent.includes('Edit')) ||
-                 (tool === 'node' && toolText.textContent.includes('Add')))) {
+                 (tool === 'node' && toolText.textContent.includes('Add')) ||
+                 (tool === 'visualize' && toolText.textContent.includes('Customize')))) {
                 item.style.background = document.body.classList.contains('dark') ? '#333' : '#e3f2fd';
                 item.style.borderColor = '#667eea';
             }
@@ -67,7 +87,8 @@ function updateParentNodeOptions() {
     parentNodeSelects.forEach(select => {
         select.innerHTML = '<option value="">Select parent node</option>';
         if (window.currentMapData && window.currentMapData.nodes) {
-            window.currentMapData.nodes.forEach(node => {
+            const nodesSorted = getNodesSortedById();
+            nodesSorted.forEach(node => {
                 const option = document.createElement('option');
                 option.value = node.id;
                 option.textContent = node.id;
@@ -83,7 +104,8 @@ function updateEditNodeOptions() {
     if (editNodeSelect) {
         editNodeSelect.innerHTML = '<option value="">Select node</option>';
         if (window.currentMapData && window.currentMapData.nodes) {
-            window.currentMapData.nodes.forEach(node => {
+            const nodesSorted = getNodesSortedById();
+            nodesSorted.forEach(node => {
                 const option = document.createElement('option');
                 option.value = node.id;
                 option.textContent = node.id;
@@ -191,10 +213,11 @@ function addEditParentNodeSelect(selectedParentId = '') {
         const editNodeSelect = document.getElementById('editNodeSelect');
         const currentEditId = editNodeSelect.value;
         console.log('🔍 currentEditId:', currentEditId);
-        console.log('🔍 Available nodes:', window.currentMapData.nodes.map(n => n.id));
         
+        const nodesSorted = getNodesSortedById();
+        console.log('🔍 Available nodes:', nodesSorted.map(n => n.id));
         let optionFound = false;
-        window.currentMapData.nodes.forEach(node => {
+        nodesSorted.forEach(node => {
             if (node.id !== currentEditId) {
                 const option = document.createElement('option');
                 option.value = node.id;
@@ -312,9 +335,22 @@ function addEditAttribute(name = '', value = '') {
 
 function addParentNodeSelect() {
     const container = document.getElementById('parentNodeContainer');
-    const selects = container.querySelectorAll('.parent-node-select');
-    const newSelect = selects[0].cloneNode(true);
-    newSelect.selectedIndex = 0;
+    
+    // Create new select element with sorted options instead of cloning
+    const newSelect = document.createElement('select');
+    newSelect.className = 'config-select parent-node-select';
+    newSelect.innerHTML = '<option value="">Select parent node</option>';
+    
+    // Populate with sorted nodes
+    if (window.currentMapData && window.currentMapData.nodes) {
+        const nodesSorted = getNodesSortedById();
+        nodesSorted.forEach(node => {
+            const option = document.createElement('option');
+            option.value = node.id;
+            option.textContent = node.id;
+            newSelect.appendChild(option);
+        });
+    }
 
     const rowDiv = document.createElement('div');
     rowDiv.className = 'parent-node-select-row';
@@ -1031,7 +1067,180 @@ function handleNodeTypeChange(selectElement, customInputId) {
         customInput.value = '';
     }
 }
-// Capture current visualization configuration
+
+// Visualization Customization Functions
+window.visualizationSettings = {
+    layoutType: 'force',
+    nodeColors: {},
+    nodeBorderWidth: 2,
+    nodeBorderColor: '#ffffff',
+    nodeSizeMultiplier: 1.0,
+    linkColor: '#667eea',
+    linkWidth: 2,
+    linkOpacity: 0.6,
+    enableNodeGlow: true,
+    enableLinkGlow: true,
+    enableParticles: true
+};
+
+function initializeVisualizationControls() {
+    populateNodeColorControls();
+    loadVisualizationPreferences();
+    updateVisualizationControlValues();
+}
+
+function populateNodeColorControls() {
+    const container = document.getElementById('nodeColorControls');
+    if (!container || !window.currentMapData) return;
+
+    // Get unique node types
+    const nodeTypes = [...new Set(window.currentMapData.nodes.map(n => n.group))].filter(Boolean).sort();
+    
+    container.innerHTML = '';
+    
+    // Default color palette from visualization.js
+    const defaultColors = [
+        '#667eea', '#764ba2', '#f093fb', '#f5576c', 
+        '#4facfe', '#00f2fe', '#43e97b', '#38f9d7',
+        '#ffecd2', '#fcb69f', '#a8edea', '#fed6e3',
+        '#ff9a9e', '#fecfef', '#ffeaa7', '#fab1a0'
+    ];
+
+    nodeTypes.forEach((nodeType, index) => {
+        const control = document.createElement('div');
+        control.className = 'node-color-control';
+        
+        // Use existing color or default from palette
+        const currentColor = window.visualizationSettings.nodeColors[nodeType] || defaultColors[index % defaultColors.length];
+        
+        control.innerHTML = `
+            <span class="node-type-label">${nodeType}</span>
+            <input type="color" class="node-color-picker" 
+                   value="${currentColor}" 
+                   data-node-type="${nodeType}"
+                   onchange="updateNodeTypeColor('${nodeType}', this.value)">
+        `;
+        
+        container.appendChild(control);
+        
+        // Store the color in settings
+        window.visualizationSettings.nodeColors[nodeType] = currentColor;
+    });
+}
+
+function updateNodeTypeColor(nodeType, color) {
+    window.visualizationSettings.nodeColors[nodeType] = color;
+    updateVisualizationStyle();
+}
+
+function updateVisualizationStyle() {
+    // Update range value displays
+    document.getElementById('nodeBorderWidthValue').textContent = document.getElementById('nodeBorderWidth').value + 'px';
+    document.getElementById('nodeSizeMultiplierValue').textContent = document.getElementById('nodeSizeMultiplier').value + 'x';
+    document.getElementById('linkWidthValue').textContent = document.getElementById('linkWidth').value + 'px';
+    document.getElementById('linkOpacityValue').textContent = Math.round(document.getElementById('linkOpacity').value * 100) + '%';
+    
+    // Update settings object
+    window.visualizationSettings.layoutType = document.getElementById('layoutType').value;
+    window.visualizationSettings.nodeBorderWidth = parseFloat(document.getElementById('nodeBorderWidth').value);
+    window.visualizationSettings.nodeBorderColor = document.getElementById('nodeBorderColor').value;
+    window.visualizationSettings.nodeSizeMultiplier = parseFloat(document.getElementById('nodeSizeMultiplier').value);
+    window.visualizationSettings.linkColor = document.getElementById('linkColor').value;
+    window.visualizationSettings.linkWidth = parseFloat(document.getElementById('linkWidth').value);
+    window.visualizationSettings.linkOpacity = parseFloat(document.getElementById('linkOpacity').value);
+    window.visualizationSettings.enableNodeGlow = document.getElementById('enableNodeGlow').checked;
+    window.visualizationSettings.enableLinkGlow = document.getElementById('enableLinkGlow').checked;
+    window.visualizationSettings.enableParticles = document.getElementById('enableParticles').checked;
+    
+    // Apply changes to visualization
+    applyVisualizationChanges();
+}
+
+function updateVisualizationLayout() {
+    window.visualizationSettings.layoutType = document.getElementById('layoutType').value;
+    applyVisualizationChanges();
+}
+
+function applyVisualizationChanges() {
+    if (!window.currentMapData) return;
+    
+    // Re-initialize visualization with new settings
+    initVisualization();
+}
+
+function updateVisualizationControlValues() {
+    document.getElementById('layoutType').value = window.visualizationSettings.layoutType;
+    
+    document.getElementById('nodeBorderWidth').value = window.visualizationSettings.nodeBorderWidth;
+    document.getElementById('nodeBorderWidthValue').textContent = window.visualizationSettings.nodeBorderWidth + 'px';
+    
+    document.getElementById('nodeBorderColor').value = window.visualizationSettings.nodeBorderColor;
+    
+    document.getElementById('nodeSizeMultiplier').value = window.visualizationSettings.nodeSizeMultiplier;
+    document.getElementById('nodeSizeMultiplierValue').textContent = window.visualizationSettings.nodeSizeMultiplier + 'x';
+    
+    document.getElementById('linkColor').value = window.visualizationSettings.linkColor;
+    
+    document.getElementById('linkWidth').value = window.visualizationSettings.linkWidth;
+    document.getElementById('linkWidthValue').textContent = window.visualizationSettings.linkWidth + 'px';
+    
+    document.getElementById('linkOpacity').value = window.visualizationSettings.linkOpacity;
+    document.getElementById('linkOpacityValue').textContent = Math.round(window.visualizationSettings.linkOpacity * 100) + '%';
+    
+    document.getElementById('enableNodeGlow').checked = window.visualizationSettings.enableNodeGlow;
+    document.getElementById('enableLinkGlow').checked = window.visualizationSettings.enableLinkGlow;
+    document.getElementById('enableParticles').checked = window.visualizationSettings.enableParticles;
+}
+
+function resetVisualizationDefaults() {
+    window.visualizationSettings = {
+        layoutType: 'force',
+        nodeColors: {},
+        nodeBorderWidth: 2,
+        nodeBorderColor: '#ffffff',
+        nodeSizeMultiplier: 1.0,
+        linkColor: '#667eea',
+        linkWidth: 2,
+        linkOpacity: 0.6,
+        enableNodeGlow: true,
+        enableLinkGlow: true,
+        enableParticles: true
+    };
+    
+    populateNodeColorControls();
+    updateVisualizationControlValues();
+    applyVisualizationChanges();
+    showMessage('Visualization reset to defaults');
+}
+
+function saveVisualizationPreferences() {
+    try {
+        localStorage.setItem('systemMapperVisualizationSettings', JSON.stringify(window.visualizationSettings));
+        showMessage('Visualization preferences saved (including layout)');
+    } catch (error) {
+        console.error('Error saving preferences:', error);
+        showMessage('Failed to save preferences', 'error');
+    }
+}
+
+function loadVisualizationPreferences() {
+    try {
+        const saved = localStorage.getItem('systemMapperVisualizationSettings');
+        if (saved) {
+            const savedSettings = JSON.parse(saved);
+            window.visualizationSettings = { ...window.visualizationSettings, ...savedSettings };
+        }
+    } catch (error) {
+        console.error('Error loading preferences:', error);
+    }
+}
+
+// Make functions globally available
+window.updateVisualizationStyle = updateVisualizationStyle;
+window.updateVisualizationLayout = updateVisualizationLayout;
+window.resetVisualizationDefaults = resetVisualizationDefaults;
+window.saveVisualizationPreferences = saveVisualizationPreferences;
+window.updateNodeTypeColor = updateNodeTypeColor;// Capture current visualization configuration
 function captureVisualizationConfig() {
     const config = {
         nodeColors: {},

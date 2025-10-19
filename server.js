@@ -1251,7 +1251,7 @@ app.get('/redacted/:redactedId', async (req, res) => {
                 .selectAll('circle')
                 .data(currentMapData.nodes)
                 .enter().append('circle')
-                .attr('r', 8)
+                .attr('r', 8 * (config.nodeSizeMultiplier || 1.0))
                 .attr('fill', d => {
                     // Use gradients like main visualization
                     const baseColor = (config.nodeColors && config.nodeColors[d.group]) 

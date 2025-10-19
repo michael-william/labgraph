@@ -1247,6 +1247,7 @@ function captureVisualizationConfig() {
         nodeBorderWidth: parseFloat(document.getElementById('nodeBorderWidth')?.value || 2),
         nodeBorderColor: document.getElementById('nodeBorderColor')?.value || '#ffffff',
         linkColor: document.getElementById('linkColor')?.value || '#667eea',
+        nodeSizeMultiplier: parseFloat(document.getElementById('nodeSizeMultiplier')?.value || 1.0),
         linkWidth: parseFloat(document.getElementById('linkWidth')?.value || 2),
         linkOpacity: parseFloat(document.getElementById('linkOpacity')?.value || 0.6),
         enableNodeGlow: document.getElementById('enableNodeGlow')?.checked !== false,

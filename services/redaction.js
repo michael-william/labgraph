@@ -15,7 +15,7 @@ function generateUUID() {
  * @param {Object} redisClient - Redis client for storage
  * @returns {Promise<Object>} - Object containing redactedId and publicUrl
  */
-async function createRedactedMap(originalMap, redisClient) {
+async function createRedactedMap(originalMap, redisClient, config = null) {
     const redactedId = generateUUID();
     
     // Create mapping from original node IDs to redacted IDs
@@ -68,7 +68,8 @@ async function createRedactedMap(originalMap, redisClient) {
     const redactedMap = {
         id: redactedId,
         nodes: redactedNodes,
-        links: redactedLinks
+        links: redactedLinks,
+        config: config
     };
     
     // Store in Redis with TTL (7 days default)

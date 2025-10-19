@@ -1903,3 +1903,27 @@ body.dark .rename-tooltip {
 .side-panel.collapsed .collapse-btn {
     display: none !important;
 }
+/* Redacted share button */
+.share-create-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    width: 100%;
+}
+
+.share-create-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.share-create-btn:disabled {
+    background: #6c757d;
+    cursor: not-allowed;
+    transform: none;
+}

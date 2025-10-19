@@ -962,6 +962,30 @@ app.get('/embed', (req, res) => {
     res.send(embedHTML);
 });
 
+
+// Simple rate limiting for redacted map creation
+const rateLimiter = new Map();
+
+function checkRateLimit(identifier, windowMs = 60000, maxRequests = 5) {
+    const now = Date.now();
+    const windowStart = now - windowMs;
+    
+    if (!rateLimiter.has(identifier)) {
+        rateLimiter.set(identifier, []);
+    }
+    
+    const requests = rateLimiter.get(identifier);
+    const recentRequests = requests.filter(timestamp => timestamp > windowStart);
+    rateLimiter.set(identifier, recentRequests);
+    
+    if (recentRequests.length >= maxRequests) {
+        return false;
+    }
+    
+    recentRequests.push(now);
+    return true;
+}
+
 // REDACTED SHARING ENDPOINTS
 // =============================================================================
 
@@ -992,7 +1016,7 @@ app.post('/api/maps/:id/redacted', async (req, res) => {
         const originalMap = JSON.parse(mapData);
         
         // Create redacted version
-        const result = await createRedactedMap(originalMap, redisClient);
+        const result = await createRedactedMap(originalMap, redisClient, req.body.config);
         
         log('info', `Created redacted share: ${result.redactedId} for map: ${mapId}`);
         

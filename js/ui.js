@@ -488,6 +488,35 @@ function createShareModal() {
                 </div>
                 
                 <div class="modal-section">
+                
+                <div class="modal-section">
+                    <div class="modal-section-title">🔒 Anonymous Share</div>
+                    <div class="share-option">
+                        <label class="share-label">Create Redacted Public Link:</label>
+                        <div class="share-input-group">
+                            <button class="share-create-btn" id="createRedactedBtn" onclick="createRedactedShare()">
+                                🛡️ Generate Anonymous Link
+                            </button>
+                        </div>
+                        <div id="redactedShareResult" style="display: none; margin-top: 12px;">
+                            <div class="share-input-group">
+                                <input type="text" class="share-input" id="redactedUrl" readonly>
+                                <button class="share-copy-btn" onclick="copyToClipboard('redactedUrl', 'Link copied!')">
+                                    📋 Copy
+                                </button>
+                            </div>
+                            <div class="share-input-group" style="margin-top: 8px;">
+                                <textarea class="share-textarea" id="redactedIframeCode" readonly style="height: 60px;"></textarea>
+                                <button class="share-copy-btn" onclick="copyToClipboard('redactedIframeCode', 'Iframe copied!')">
+                                    📋 Copy Iframe
+                                </button>
+                            </div>
+                        </div>
+                        <div class="share-description">
+                            Creates a public link with anonymized data. All node names and descriptions are replaced with generic labels (e.g., "Database_1").
+                        </div>
+                    </div>
+                </div>
                     <div class="modal-section-title">⚙️ Embed Options</div>
                     <div class="embed-options">
                         <div class="embed-option-group">
@@ -1000,5 +1029,76 @@ function handleNodeTypeChange(selectElement, customInputId) {
     } else {
         customInput.style.display = 'none';
         customInput.value = '';
+    }
+}
+// Capture current visualization configuration
+function captureVisualizationConfig() {
+    const config = {
+        nodeColors: {},
+        nodeBorderWidth: parseFloat(document.getElementById('nodeBorderWidth')?.value || 2),
+        nodeBorderColor: document.getElementById('nodeBorderColor')?.value || '#ffffff',
+        linkColor: document.getElementById('linkColor')?.value || '#667eea',
+        linkWidth: parseFloat(document.getElementById('linkWidth')?.value || 2),
+        linkOpacity: parseFloat(document.getElementById('linkOpacity')?.value || 0.6),
+        enableNodeGlow: document.getElementById('enableNodeGlow')?.checked !== false,
+        enableLinkGlow: document.getElementById('enableLinkGlow')?.checked !== false
+    };
+    
+    document.querySelectorAll('.node-color-picker').forEach(picker => {
+        const nodeType = picker.dataset.nodeType;
+        if (nodeType) {
+            config.nodeColors[nodeType] = picker.value;
+        }
+    });
+    
+    return config;
+}
+
+async function createRedactedShare() {
+    const btn = document.getElementById('createRedactedBtn');
+    const result = document.getElementById('redactedShareResult');
+    
+    if (!window.currentMapId) {
+        showMessage('No map selected to share', 'error');
+        return;
+    }
+    
+    btn.disabled = true;
+    btn.textContent = '🔄 Creating...';
+    
+    try {
+        const config = captureVisualizationConfig();
+        
+        const response = await fetch(`/api/maps/${window.currentMapId}/redacted`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ config }),
+            credentials: 'same-origin'
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || `HTTP ${response.status}`);
+        }
+        
+        const data = await response.json();
+        const publicUrl = `${window.location.origin}/redacted/${data.redactedId}`;
+        
+        document.getElementById('redactedUrl').value = publicUrl;
+        document.getElementById('redactedIframeCode').value = `<iframe src="${publicUrl}" width="800" height="600" frameborder="0"></iframe>`;
+        
+        result.style.display = 'block';
+        btn.textContent = '✅ Created';
+        
+        setTimeout(() => {
+            btn.disabled = false;
+            btn.textContent = '🛡️ Generate Anonymous Link';
+        }, 3000);
+        
+    } catch (error) {
+        console.error('Error creating redacted share:', error);
+        showMessage(`Failed: ${error.message}`, 'error');
+        btn.disabled = false;
+        btn.textContent = '🛡️ Generate Anonymous Link';
     }
 }

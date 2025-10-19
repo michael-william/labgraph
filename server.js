@@ -1211,7 +1211,7 @@ app.get('/redacted/:redactedId', async (req, res) => {
             const nodeTypes = [...new Set(currentMapData.nodes.map(n => n.group))];
             nodeTypes.forEach(type => {
                 const gradient = defs.append("radialGradient")
-                    .attr("id", \`nodeGradient-\${type}\`)
+                    .attr("id", \`nodeGradient-\${type.replace(/\\s+/g, '-')}\`)
                     .attr("cx", "30%")
                     .attr("cy", "30%");
                 
@@ -1278,7 +1278,7 @@ app.get('/redacted/:redactedId', async (req, res) => {
                     const baseColor = (config.nodeColors && config.nodeColors[d.group]) 
                         ? config.nodeColors[d.group] 
                         : colorScale(d.group);
-                    return \`url(#nodeGradient-\${d.group})\` || baseColor;
+                    return \`url(#nodeGradient-\${d.group.replace(/\\s+/g, '-')})\` || baseColor;
                 })
                 .attr('stroke', config.nodeBorderColor || '#ffffff')
                 .attr('stroke-width', config.nodeBorderWidth || 2)

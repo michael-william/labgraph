@@ -190,7 +190,7 @@ function initVisualization() {
         })
         .attr("fill", d => {
             // Use custom color or gradient
-            return `url(#nodeGradient-${d.group})` || getNodeColor(d.group);
+            return `url(#nodeGradient-${d.group.replace(/\s+/g, '-')})` || getNodeColor(d.group);
         })
         .attr("stroke", settings.nodeBorderColor)
         .attr("stroke-width", settings.nodeBorderWidth)
@@ -269,7 +269,7 @@ function initVisualization() {
     const nodeTypes = [...new Set(window.currentMapData.nodes.map(n => n.group))];
     nodeTypes.forEach(type => {
         const gradient = defs.append("radialGradient")
-            .attr("id", `nodeGradient-${type}`)
+            .attr("id", `nodeGradient-${type.replace(/\s+/g, '-')}`)
             .attr("cx", "30%")
             .attr("cy", "30%");
         

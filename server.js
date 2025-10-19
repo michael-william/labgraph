@@ -1263,10 +1263,6 @@ app.get('/redacted/:redactedId', async (req, res) => {
 app.get('/health', async (req, res) => {
     try {
         // Check Redis connection
-// Health check endpoint
-app.get('/health', async (req, res) => {
-    try {
-        // Check Redis connection
         await redisClient.ping();
         
         res.json({

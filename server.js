@@ -7,6 +7,8 @@ const path = require('path');
 const fs = require('fs');
 const redis = require('redis');
 
+const { createRedactedMap, getRedactedMap } = require('./services/redaction');
+
 // Configuration from environment variables
 const config = {
     port: process.env.PORT || 3000,
@@ -960,6 +962,307 @@ app.get('/embed', (req, res) => {
     res.send(embedHTML);
 });
 
+// REDACTED SHARING ENDPOINTS
+// =============================================================================
+
+// Create redacted share of a map (authenticated)
+app.post('/api/maps/:id/redacted', async (req, res) => {
+    try {
+        const mapId = req.params.id;
+        const clientIp = req.ip || req.connection.remoteAddress;
+        
+        // Rate limiting
+        const windowMs = parseInt(process.env.REDACTED_LIMIT_WINDOW_MS) || 60000;
+        const maxRequests = parseInt(process.env.REDACTED_LIMIT_MAX) || 5;
+        
+        if (!checkRateLimit(clientIp, windowMs, maxRequests)) {
+            return res.status(429).json({ 
+                error: 'Rate limit exceeded. Please try again later.' 
+            });
+        }
+        
+        log('debug', `Creating redacted share for map: ${mapId}`);
+        
+        // Verify the map exists and user has access (reuse existing logic)
+        const mapData = await redisClient.get(`map:${mapId}`);
+        if (!mapData) {
+            return res.status(404).json({ error: 'Map not found' });
+        }
+        
+        const originalMap = JSON.parse(mapData);
+        
+        // Create redacted version
+        const result = await createRedactedMap(originalMap, redisClient);
+        
+        log('info', `Created redacted share: ${result.redactedId} for map: ${mapId}`);
+        
+        res.status(201).json(result);
+        
+    } catch (error) {
+        log('error', 'Error creating redacted map:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Get redacted map data (public endpoint)
+app.get('/api/redacted/:redactedId', async (req, res) => {
+    try {
+        const redactedId = req.params.redactedId;
+        
+        // Security headers for public endpoint
+        res.set({
+            'Cache-Control': 'public, max-age=3600, immutable',
+            'Referrer-Policy': 'no-referrer',
+            'X-Content-Type-Options': 'nosniff',
+            'X-Frame-Options': 'SAMEORIGIN'
+        });
+        
+        const redactedMap = await getRedactedMap(redactedId, redisClient);
+        
+        if (!redactedMap) {
+            return res.status(404).json({ error: 'Redacted map not found' });
+        }
+        
+        // Do not log the redacted data or any mapping
+        log('debug', `Served redacted map: ${redactedId}`);
+        
+        res.json(redactedMap);
+        
+    } catch (error) {
+        log('error', 'Error retrieving redacted map:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Public view endpoint for redacted maps
+app.get('/redacted/:redactedId', async (req, res) => {
+    try {
+        const redactedId = req.params.redactedId;
+        
+        // Security headers
+        res.set({
+            'X-Content-Type-Options': 'nosniff',
+            'X-Frame-Options': 'SAMEORIGIN',
+            'Referrer-Policy': 'no-referrer'
+        });
+        
+        // Verify the redacted map exists before serving the page
+        const redactedMap = await getRedactedMap(redactedId, redisClient);
+        if (!redactedMap) {
+            return res.status(404).send(`
+                <!DOCTYPE html>
+                <html><head><title>Map Not Found</title></head>
+                <body style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
+                    <h1>404 - Redacted Map Not Found</h1>
+                    <p>The shared map you're looking for could not be found or has expired.</p>
+                </body></html>
+            `);
+        }
+        
+        // Serve a minimal page that loads the redacted map
+        const publicHTML = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shared System Map</title>
+    <link rel="stylesheet" href="/custom.css">
+    <style>
+        body { margin: 0; padding: 0; background: #1a1a1a; overflow: hidden; }
+        .public-container { width: 100vw; height: 100vh; position: relative; }
+        .loading { 
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            color: #00ff88; font-family: Arial, sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <div class="public-container">
+        <div id="loadingState" class="loading">Loading shared map...</div>
+        <div id="mapContainer"></div>
+    </div>
+    
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    
+    <script>
+        let simulation = null;
+        let currentMapData = null;
+        const redactedId = '${redactedId}';
+
+        async function loadRedactedMap() {
+            try {
+                const response = await fetch(\`/api/redacted/\${redactedId}\`);
+                
+                if (!response.ok) {
+                    throw new Error(\`HTTP \${response.status}\`);
+                }
+                
+                currentMapData = await response.json();
+                document.getElementById('loadingState').style.display = 'none';
+                
+                if (!currentMapData.nodes || currentMapData.nodes.length === 0) {
+                    throw new Error('No nodes found in map data');
+                }
+                
+                initPublicVisualization();
+            } catch (error) {
+                console.error('Error loading redacted map:', error);
+                document.getElementById('loadingState').innerHTML = \`
+                    <div style="color: #ff4444;">
+                        <div style="font-size: 24px; margin-bottom: 16px;">⚠️</div>
+                        <div>Error loading shared map</div>
+                        <div style="font-size: 12px; margin-top: 8px;">The map may have expired or been removed</div>
+                    </div>
+                \`;
+            }
+        }
+
+        function initPublicVisualization() {
+            const container = document.getElementById('mapContainer');
+            container.innerHTML = ''; // Clear any existing content
+            
+            // Simple D3 force-directed graph for redacted data
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+            
+            const svg = d3.select("#mapContainer")
+                .append("svg")
+                .attr("width", width)
+                .attr("height", height)
+                .style("background", "#1a1a1a");
+            
+            const g = svg.append("g");
+            
+            // Add zoom and pan
+            const zoom = d3.zoom()
+                .scaleExtent([0.1, 4])
+                .on("zoom", (event) => g.attr("transform", event.transform));
+            svg.call(zoom);
+            
+            // Create color scale matching main visualization
+            const colorScale = d3.scaleOrdinal([
+                "#667eea", "#764ba2", "#f093fb", "#f5576c", 
+                "#4facfe", "#00f2fe", "#43e97b", "#38f9d7",
+                "#ffecd2", "#fcb69f", "#a8edea", "#fed6e3",
+                "#ff9a9e", "#fecfef", "#ffeaa7", "#fab1a0"
+            ]);
+            
+            // Create gradients for each node type like main visualization
+            const defs = svg.append("defs");
+            const nodeTypes = [...new Set(currentMapData.nodes.map(n => n.group))];
+            nodeTypes.forEach(type => {
+                const gradient = defs.append("radialGradient")
+                    .attr("id", \`nodeGradient-\${type}\`)
+                    .attr("cx", "30%")
+                    .attr("cy", "30%");
+                
+                const baseColor = colorScale(type);
+                gradient.append("stop")
+                    .attr("offset", "0%")
+                    .attr("stop-color", d3.color(baseColor).brighter(0.8));
+                
+                gradient.append("stop")
+                    .attr("offset", "100%")
+                    .attr("stop-color", baseColor);
+            });
+            
+            const simulation = d3.forceSimulation(currentMapData.nodes)
+                .force('link', d3.forceLink(currentMapData.links || []).id(d => d.id).distance(100))
+                .force('charge', d3.forceManyBody().strength(-300))
+                .force('center', d3.forceCenter(width / 2, height / 2));
+            
+            // Add links
+            const link = g.append('g')
+                .attr('class', 'links')
+                .selectAll('line')
+                .data(currentMapData.links || [])
+                .enter().append('line')
+                .attr('stroke', '#999')
+                .attr('stroke-width', 2);
+            
+            // Add nodes
+            const node = g.append('g')
+                .attr('class', 'nodes')
+                .selectAll('circle')
+                .data(currentMapData.nodes)
+                .enter().append('circle')
+                .attr('r', 8)
+                .attr('fill', d => {
+                    // Use gradients like main visualization
+                    const baseColor = colorScale(d.group);
+                    return \`url(#nodeGradient-\${d.group})\` || baseColor;
+                })
+                .call(d3.drag()
+                    .on('start', dragstarted)
+                    .on('drag', dragged)
+                    .on('end', dragended));
+            
+            // Add labels using the 'name' field from redacted data
+            const label = g.append('g')
+                .attr('class', 'labels')
+                .selectAll('text')
+                .data(currentMapData.nodes)
+                .enter().append('text')
+                .text(d => d.name || d.id) // Use name field for redacted maps
+                .attr('font-size', '12px')
+                .attr('fill', 'white')
+                .attr('text-anchor', 'middle')
+                .attr('dy', '.35em');
+            
+            simulation.on('tick', () => {
+                link
+                    .attr('x1', d => d.source.x)
+                    .attr('y1', d => d.source.y)
+                    .attr('x2', d => d.target.x)
+                    .attr('y2', d => d.target.y);
+                
+                node
+                    .attr('cx', d => d.x)
+                    .attr('cy', d => d.y);
+                
+                label
+                    .attr('x', d => d.x)
+                    .attr('y', d => d.y);
+            });
+            
+            function dragstarted(event, d) {
+                if (!event.active) simulation.alphaTarget(0.3).restart();
+                d.fx = d.x;
+                d.fy = d.y;
+            }
+            
+            function dragged(event, d) {
+                d.fx = event.x;
+                d.fy = event.y;
+            }
+            
+            function dragended(event, d) {
+                if (!event.active) simulation.alphaTarget(0);
+                d.fx = null;
+                d.fy = null;
+            }
+        }
+        window.addEventListener('resize', () => {
+            if (currentMapData) initPublicVisualization();
+        });
+
+        loadRedactedMap();
+    </script>
+</body>
+</html>`;
+
+        res.send(publicHTML);
+        
+    } catch (error) {
+        log('error', 'Error serving redacted map page:', error);
+        res.status(500).send('Internal server error');
+    }
+});
+
+// Health check endpoint
+app.get('/health', async (req, res) => {
+    try {
+        // Check Redis connection
 // Health check endpoint
 app.get('/health', async (req, res) => {
     try {

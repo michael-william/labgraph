@@ -1145,6 +1145,9 @@ app.get('/redacted/:redactedId', async (req, res) => {
             const container = document.getElementById('mapContainer');
             container.innerHTML = ''; // Clear any existing content
             
+            // Extract config from map data (or use defaults)
+            const config = currentMapData.config || {};
+            
             // Simple D3 force-directed graph for redacted data
             const width = window.innerWidth;
             const height = window.innerHeight;
@@ -1163,7 +1166,7 @@ app.get('/redacted/:redactedId', async (req, res) => {
                 .on("zoom", (event) => g.attr("transform", event.transform));
             svg.call(zoom);
             
-            // Create color scale matching main visualization
+            // Create color scale matching main visualization (fallback)
             const colorScale = d3.scaleOrdinal([
                 "#667eea", "#764ba2", "#f093fb", "#f5576c", 
                 "#4facfe", "#00f2fe", "#43e97b", "#38f9d7",
@@ -1171,8 +1174,40 @@ app.get('/redacted/:redactedId', async (req, res) => {
                 "#ff9a9e", "#fecfef", "#ffeaa7", "#fab1a0"
             ]);
             
-            // Create gradients for each node type like main visualization
+            // Create gradients for each node type
             const defs = svg.append("defs");
+            
+            // Add glow filters if enabled
+            if (config.enableNodeGlow) {
+                const nodeGlow = defs.append("filter")
+                    .attr("id", "nodeGlow")
+                    .attr("x", "-50%")
+                    .attr("y", "-50%")
+                    .attr("width", "200%")
+                    .attr("height", "200%");
+                nodeGlow.append("feGaussianBlur")
+                    .attr("stdDeviation", "3")
+                    .attr("result", "coloredBlur");
+                const feMerge = nodeGlow.append("feMerge");
+                feMerge.append("feMergeNode").attr("in", "coloredBlur");
+                feMerge.append("feMergeNode").attr("in", "SourceGraphic");
+            }
+            
+            if (config.enableLinkGlow) {
+                const linkGlow = defs.append("filter")
+                    .attr("id", "linkGlow")
+                    .attr("x", "-50%")
+                    .attr("y", "-50%")
+                    .attr("width", "200%")
+                    .attr("height", "200%");
+                linkGlow.append("feGaussianBlur")
+                    .attr("stdDeviation", "2")
+                    .attr("result", "coloredBlur");
+                const feMerge = linkGlow.append("feMerge");
+                feMerge.append("feMergeNode").attr("in", "coloredBlur");
+                feMerge.append("feMergeNode").attr("in", "SourceGraphic");
+            }
+            
             const nodeTypes = [...new Set(currentMapData.nodes.map(n => n.group))];
             nodeTypes.forEach(type => {
                 const gradient = defs.append("radialGradient")
@@ -1180,7 +1215,11 @@ app.get('/redacted/:redactedId', async (req, res) => {
                     .attr("cx", "30%")
                     .attr("cy", "30%");
                 
-                const baseColor = colorScale(type);
+                // Use config colors if available, otherwise fallback to colorScale
+                const baseColor = (config.nodeColors && config.nodeColors[type]) 
+                    ? config.nodeColors[type] 
+                    : colorScale(type);
+                    
                 gradient.append("stop")
                     .attr("offset", "0%")
                     .attr("stop-color", d3.color(baseColor).brighter(0.8));
@@ -1195,16 +1234,18 @@ app.get('/redacted/:redactedId', async (req, res) => {
                 .force('charge', d3.forceManyBody().strength(-300))
                 .force('center', d3.forceCenter(width / 2, height / 2));
             
-            // Add links
+            // Add links with config styling
             const link = g.append('g')
                 .attr('class', 'links')
                 .selectAll('line')
                 .data(currentMapData.links || [])
                 .enter().append('line')
-                .attr('stroke', '#999')
-                .attr('stroke-width', 2);
+                .attr('stroke', config.linkColor || '#999')
+                .attr('stroke-width', config.linkWidth || 2)
+                .attr('stroke-opacity', config.linkOpacity || 0.6)
+                .attr('filter', config.enableLinkGlow ? 'url(#linkGlow)' : null);
             
-            // Add nodes
+            // Add nodes with config styling
             const node = g.append('g')
                 .attr('class', 'nodes')
                 .selectAll('circle')
@@ -1213,9 +1254,14 @@ app.get('/redacted/:redactedId', async (req, res) => {
                 .attr('r', 8)
                 .attr('fill', d => {
                     // Use gradients like main visualization
-                    const baseColor = colorScale(d.group);
+                    const baseColor = (config.nodeColors && config.nodeColors[d.group]) 
+                        ? config.nodeColors[d.group] 
+                        : colorScale(d.group);
                     return \`url(#nodeGradient-\${d.group})\` || baseColor;
                 })
+                .attr('stroke', config.nodeBorderColor || '#ffffff')
+                .attr('stroke-width', config.nodeBorderWidth || 2)
+                .attr('filter', config.enableNodeGlow ? 'url(#nodeGlow)' : null)
                 .call(d3.drag()
                     .on('start', dragstarted)
                     .on('drag', dragged)

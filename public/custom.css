@@ -2096,10 +2096,10 @@ body.dark .rename-tooltip {
 }
 
 .side-panel.collapsed .panel-header,
-.side-panel.collapsed .panel-content,
-.side-panel.collapsed .collapse-btn {
-    display: none !important;
-}    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+
+/* Redacted share button */
+.share-create-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     border: none;
     padding: 10px 16px;

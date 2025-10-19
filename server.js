@@ -1156,7 +1156,7 @@ app.get('/redacted/:redactedId', async (req, res) => {
                 .append("svg")
                 .attr("width", width)
                 .attr("height", height)
-                .style("background", "#1a1a1a");
+                .style("background", "radial-gradient(ellipse at center, #1a1a2e 0%, #16213e 50%, #0f0f23 100%)");
             
             const g = svg.append("g");
             
@@ -1234,6 +1234,26 @@ app.get('/redacted/:redactedId', async (req, res) => {
                 .force('charge', d3.forceManyBody().strength(-300))
                 .force('center', d3.forceCenter(width / 2, height / 2));
             
+            // Add floating particles
+            const particles = g.append("g")
+                .attr("class", "particles")
+                .selectAll("circle")
+                .data(d3.range(20))
+                .join("circle")
+                .attr("r", () => Math.random() * 2 + 1)
+                .attr("fill", config.linkColor || "#667eea")
+                .attr("opacity", 0.3)
+                .attr("cx", () => Math.random() * width)
+                .attr("cy", () => Math.random() * height);
+            
+            function animateParticles() {
+                particles.transition().duration(20000).ease(d3.easeLinear)
+                    .attr("cx", () => Math.random() * width)
+                    .attr("cy", () => Math.random() * height)
+                    .on("end", animateParticles);
+            }
+            animateParticles();
+            
             // Add links with config styling
             const link = g.append('g')
                 .attr('class', 'links')
@@ -1252,6 +1272,7 @@ app.get('/redacted/:redactedId', async (req, res) => {
                 .data(currentMapData.nodes)
                 .enter().append('circle')
                 .attr('r', 8 * (config.nodeSizeMultiplier || 1.0))
+                .style('cursor', 'pointer')
                 .attr('fill', d => {
                     // Use gradients like main visualization
                     const baseColor = (config.nodeColors && config.nodeColors[d.group]) 
@@ -1277,7 +1298,7 @@ app.get('/redacted/:redactedId', async (req, res) => {
                 .attr('font-size', '12px')
                 .attr('fill', 'white')
                 .attr('text-anchor', 'middle')
-                .attr('dy', '.35em');
+                .attr('dy', '1.5em');
             
             simulation.on('tick', () => {
                 link

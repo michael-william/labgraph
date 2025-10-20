@@ -1328,7 +1328,7 @@ app.get('/redacted/:redactedId', async (req, res) => {
                 
                 label
                     .attr('x', d => d.x)
-                    .attr('y', d => d.y);
+                    .attr('y', d => d.y + 25);
             });
             
             function dragstarted(event, d) {

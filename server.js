@@ -1315,6 +1315,55 @@ app.get('/redacted/:redactedId', async (req, res) => {
                 .attr('text-anchor', 'middle')
                 .attr('dy', '1.5em');
             
+            // Add legend
+            const legend = svg.append('g')
+                .attr('class', 'legend')
+                .attr('transform', 'translate(20, 20)');
+            
+            // Get unique node types and sort alphabetically
+            const sortedNodeTypes = [...new Set(currentMapData.nodes.map(n => n.group))]
+                .sort((a, b) => a.localeCompare(b));
+            
+            // Add legend background
+            const legendBg = legend.append('rect')
+                .attr('width', 180)
+                .attr('height', sortedNodeTypes.length * 25 + 20)
+                .attr('fill', 'rgba(0, 0, 0, 0.8)')
+                .attr('stroke', 'rgba(255, 255, 255, 0.3)')
+                .attr('stroke-width', 1)
+                .attr('rx', 8);
+            
+            // Add legend items
+            const legendItems = legend.selectAll('.legend-item')
+                .data(sortedNodeTypes)
+                .enter().append('g')
+                .attr('class', 'legend-item')
+                .attr('transform', (d, i) => \`translate(10, \${i * 25 + 15})\`);
+            
+            // Add colored circles
+            legendItems.append('circle')
+                .attr('r', 8)
+                .attr('cx', 8)
+                .attr('cy', 8)
+                .attr('fill', d => {
+                    const baseColor = (config.nodeColors && config.nodeColors[d]) 
+                        ? config.nodeColors[d] 
+                        : colorScale(d);
+                    return baseColor;
+                })
+                .attr('stroke', config.nodeBorderColor || '#ffffff')
+                .attr('stroke-width', 1.5);
+            
+            // Add type labels
+            legendItems.append('text')
+                .attr('x', 25)
+                .attr('y', 8)
+                .attr('dy', '0.35em')
+                .attr('fill', 'white')
+                .attr('font-size', '12px')
+                .attr('font-family', 'Arial, sans-serif')
+                .text(d => d);
+            
             simulation.on('tick', () => {
                 link
                     .attr('x1', d => d.source.x)

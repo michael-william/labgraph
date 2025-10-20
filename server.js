@@ -1271,7 +1271,22 @@ app.get('/redacted/:redactedId', async (req, res) => {
                 .selectAll('circle')
                 .data(currentMapData.nodes)
                 .enter().append('circle')
-                .attr('r', 8 * (config.nodeSizeMultiplier || 1.0))
+                .attr('r', d => {
+                    // Dynamic radius based on connections (same logic as main visualization)
+                    const connections = (currentMapData.links || []).filter(l => 
+                        l.source === d.id || l.target === d.id ||
+                        l.source.id === d.id || l.target.id === d.id
+                    ).length;
+                    
+                    // Base size + connection bonus
+                    let radius = 12;
+                    radius += connections * 2;
+                    
+                    // Apply user size multiplier
+                    radius *= (config.nodeSizeMultiplier || 1.0);
+                    
+                    return Math.min(radius, 40); // Cap at 40px to allow for larger multipliers
+                })
                 .style('cursor', 'pointer')
                 .attr('fill', d => {
                     // Use gradients like main visualization

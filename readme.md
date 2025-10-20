@@ -1,17 +1,17 @@
-# <img src="public/assets/system_mapper_logo_main.svg" alt="System Mapper Logo" width="32" height="32" /> System Mapper
+# <img src="public/assets/system_mapper_logo_main.svg" alt="LabGraph Logo" width="32" height="32" /> LabGraph
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D22.0.0-brightgreen)](https://nodejs.org/)
 [![Docker](https://img.shields.io/badge/docker-%E2%9C%93-blue)](https://www.docker.com/)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
-**System Mapper** is a powerful, interactive web application for visualizing and managing complex system architectures. Built with D3.js and featuring a sleek dark UI, it provides an intuitive interface to create, modify, and share visual system diagrams with real-time collaboration features.
+**LabGraph** is a powerful, interactive web application for visualizing and managing complex system architectures. Built with D3.js and featuring a sleek dark UI, it provides an intuitive interface to create, modify, and share visual system diagrams with real-time collaboration features.
 
 > 🚀 **One-command deployment**: `docker-compose up -d` and you're running!
 
 ---
 
-## ✨ Why System Mapper?
+## ✨ Why LabGraph?
 
 - **🎯 Zero Configuration**: Works out of the box with sensible defaults
 - **🎨 Beautiful Interface**: Modern dark theme with smooth animations
@@ -24,9 +24,9 @@
 
 ## 🖼️ See It In Action
 
-![System Mapper Interface](docs/Example%20map.png)
+![LabGraph Interface](docs/Example%20map.png)
 *Interactive system architecture visualization*
-![System Mapper Interface](docs/Example%20detail.png)
+![LabGraph Interface](docs/Example%20detail.png)
 *Add custom attributes for quick reference*
 
 ---
@@ -42,7 +42,7 @@ docker-compose up -d
 open http://localhost:3000
 ```
 
-**That's it!** 🎉 Your System Mapper is running.
+**That's it!** 🎉 Your LabGraph is running.
 
 ### Option 2: Development Setup
 
